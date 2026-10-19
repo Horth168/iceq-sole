@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 
 import models
 from database import Base, engine, get_db
+from routers import auth
+from security import require_admin
 
 # Create the database tables (if they don't exist yet)
 Base.metadata.create_all(bind=engine)
@@ -17,6 +19,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth.router)
 
 
 @app.get("/api/health")
@@ -44,3 +48,9 @@ def test_products(db: Session = Depends(get_db)):
             "total_stock": sum(v.stock for v in p.variants),
         })
     return result
+
+
+# Test: only a logged-in admin can open this
+@app.get("/api/admin/secret")
+def admin_secret(admin: models.User = Depends(require_admin)):
+    return {"message": f"Hello {admin.username}, you are the IceQ Sole admin!"}

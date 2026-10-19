@@ -85,3 +85,15 @@ class ProductImage(Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
     product: Mapped["Product"] = relationship(back_populates="images")
+
+
+class User(Base):
+    """People who can log in to the dashboard (you, and later your staff)."""
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    role: Mapped[str] = mapped_column(String(20), default="admin")  # admin / staff
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
