@@ -243,7 +243,9 @@ The database stores only image URLs and object keys, never the image data itself
 
 ## Deployment
 
-The repo includes a **Render Blueprint** (`render.yaml`). It sets up PostgreSQL, the API (migrations run before every deploy), and the two static sites with SPA rewrites and cache headers.
+The repo includes a **Render Blueprint** (`render.yaml`), currently set to Render's **free** plan in Singapore. It sets up PostgreSQL, the API (migrations run at start-up), and the two static sites with SPA rewrites and cache headers.
+
+> **Free plan limits:** the API sleeps after 15 minutes idle (the first request takes about a minute), and free PostgreSQL is **deleted after 30 days**. Before taking real orders, change the API to `plan: starter` and the database to `plan: basic-256mb` (about $13/month total) in `render.yaml`.
 
 1. Push to GitHub (already done for this repo).
 2. https://dashboard.render.com → **New → Blueprint** → choose `iceq-sole`.
@@ -254,11 +256,7 @@ The repo includes a **Render Blueprint** (`render.yaml`). It sets up PostgreSQL,
    - optionally the Bakong variables
    - `VITE_API_URL` (your API URL) for both static sites
    - `VITE_STORE_URL` for the dashboard
-4. After the first deploy, open the API service **Shell** and run:
-   ```bash
-   python create_admin.py --email you@yourdomain.com --name "Your Name"
-   ```
-   It reads the password from the `ADMIN_PASSWORD` env var if set, otherwise it asks.
+4. **First admin:** set `INITIAL_ADMIN_EMAIL` and `INITIAL_ADMIN_PASSWORD` (10+ characters) on the API service. On start-up the API creates that admin **only if no admin exists yet**, then skips it on every later start. Delete both variables after your first login. On paid plans you can also use the service **Shell** and run `python create_admin.py --email you@yourdomain.com`.
 5. Do **not** run `seed.py` in production unless you want the demo catalogue. Add your real products in the dashboard instead.
 6. Add your domains (e.g. `iceqsole.com` for the store, `admin.iceqsole.com` for the dashboard, `api.iceqsole.com` for the API), then update `CORS_ORIGINS` and the `VITE_*` variables and redeploy.
 

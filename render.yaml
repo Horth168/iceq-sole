@@ -4,17 +4,19 @@
 databases:
   - name: iceq-sole-db
     databaseName: iceq_sole
-    plan: basic-256mb
+    region: singapore
+    plan: free          # free Postgres expires after 30 days - upgrade to basic-256mb for real customers
 
 services:
   - type: web
     name: iceq-sole-api
     runtime: python
     rootDir: backend
-    plan: starter
+    region: singapore
+    plan: free          # sleeps after 15 min idle; use `starter` (+ preDeployCommand) for real customers
     buildCommand: pip install -r requirements.txt
-    preDeployCommand: alembic upgrade head
-    startCommand: gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:$PORT --timeout 60
+    # Free instances can't use preDeployCommand, so migrations run at start-up (safe to repeat)
+    startCommand: alembic upgrade head && python create_admin.py --from-env && gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:$PORT --timeout 120
     healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION
@@ -48,6 +50,10 @@ services:
       - key: BAKONG_ACCOUNT_ID
         sync: false
       - key: BAKONG_API_TOKEN
+        sync: false
+      - key: INITIAL_ADMIN_EMAIL      # first admin (no shell on free plan); remove after first login
+        sync: false
+      - key: INITIAL_ADMIN_PASSWORD
         sync: false
 
   - type: web
