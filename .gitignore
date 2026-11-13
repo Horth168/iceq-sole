@@ -1,6 +1,37 @@
-﻿venv/
+﻿# ---- Python ----
+venv/
+.venv/
 __pycache__/
+*.pyc
+.pytest_cache/
+
+# ---- Secrets (never commit) ----
 .env
+.env.*
+!.env.example
+*service-account*.json
+*serviceAccount*.json
+firebase-adminsdk*.json
+*.pem
+*.key
+
+# ---- Local data ----
 *.db
-node_modules/
+*.db-shm
+*.db-wal
+backend/data/
+backend/uploads/
 uploads/
+
+# ---- Node / builds ----
+node_modules/
+dist/
+dev-dist/
+*.log
+.vite/
+
+# ---- OS / editors ----
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

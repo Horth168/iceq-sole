@@ -1,26 +1,49 @@
-"""Create (or reset) the admin account.  Run:  python create_admin.py"""
+"""Create (or reset the password of) an IceQ Sole admin account.
+
+Interactive:       python create_admin.py
+Non-interactive:   python create_admin.py --email you@example.com --name "Your Name"
+                   (password read from the ADMIN_PASSWORD environment variable)
+"""
+import argparse
+import os
 from getpass import getpass
 
-from database import Base, SessionLocal, engine
-from models import User
-from security import hash_password
+from sqlalchemy import func
 
-Base.metadata.create_all(bind=engine)
+from app.database import SessionLocal
+from app.models import Role, User
+from app.security import hash_password
 
-username = input("Admin username: ").strip()
-password = getpass("Admin password (typing is hidden): ")
-if len(password) < 8:
-    raise SystemExit("Password must be at least 8 characters.")
-if password != getpass("Type the password again: "):
-    raise SystemExit("Passwords do not match.")
 
-db = SessionLocal()
-user = db.query(User).filter(User.username == username).first()
-if user:
-    user.password_hash = hash_password(password)
-    print(f"Password updated for '{username}'.")
-else:
-    db.add(User(username=username, password_hash=hash_password(password), role="admin"))
-    print(f"Admin '{username}' created.")
-db.commit()
-db.close()
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--email")
+    ap.add_argument("--name", default="Store Admin")
+    args = ap.parse_args()
+
+    email = (args.email or input("Admin email: ")).strip().lower()
+    password = os.environ.get("ADMIN_PASSWORD") or getpass("Password (min 8 chars, hidden): ")
+    if len(password) < 8:
+        raise SystemExit("Password must be at least 8 characters.")
+    if not os.environ.get("ADMIN_PASSWORD") and password != getpass("Repeat password: "):
+        raise SystemExit("Passwords do not match.")
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(func.lower(User.email) == email).first()
+        if user:
+            user.password_hash = hash_password(password)
+            user.role = Role.admin
+            user.is_active = True
+            user.token_version += 1
+            print(f"Updated {email}: role=admin, password reset.")
+        else:
+            db.add(User(email=email, full_name=args.name, password_hash=hash_password(password), role=Role.admin))
+            print(f"Admin {email} created.")
+        db.commit()
+    finally:
+        db.close()
+
+
+if __name__ == "__main__":
+    main()
