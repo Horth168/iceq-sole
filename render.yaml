@@ -1,0 +1,95 @@
+# Render Blueprint — deploys the API, PostgreSQL, storefront and dashboard.
+# Render dashboard → New → Blueprint → pick this repository.
+# Secrets marked `sync: false` are entered in the Render dashboard (never in git).
+databases:
+  - name: iceq-sole-db
+    databaseName: iceq_sole
+    plan: basic-256mb
+
+services:
+  - type: web
+    name: iceq-sole-api
+    runtime: python
+    rootDir: backend
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    preDeployCommand: alembic upgrade head
+    startCommand: gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:$PORT --timeout 60
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.1
+      - key: ENVIRONMENT
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: iceq-sole-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        sync: false   # e.g. https://iceqsole.com,https://admin.iceqsole.com
+      - key: STORE_URL
+        sync: false
+      - key: API_PUBLIC_URL
+        sync: false
+      - key: STORAGE_PROVIDER
+        value: cloudflare
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET_NAME
+        sync: false
+      - key: R2_PUBLIC_URL
+        sync: false
+      - key: BAKONG_ACCOUNT_ID
+        sync: false
+      - key: BAKONG_API_TOKEN
+        sync: false
+
+  - type: web
+    name: iceq-sole-store
+    runtime: static
+    rootDir: store
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false   # e.g. https://iceq-sole-api.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+
+  - type: web
+    name: iceq-sole-dashboard
+    runtime: static
+    rootDir: dashboard
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+      - key: VITE_STORE_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Robots-Tag
+        value: noindex, nofollow
+      - path: /*
+        name: X-Frame-Options
+        value: DENY

@@ -1,0 +1,17 @@
+rules_version = '2';
+
+// IceQ Sole — Firebase Storage Security Rules
+// All uploads go through the backend (service account), which bypasses these rules.
+// Browsers may only READ public catalogue images. Nobody can write from the client.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{folder}/{allPaths=**} {
+      allow read: if folder in ['products', 'banners', 'brands', 'categories', 'settings'];
+      allow write: if false;
+    }
+    // payment-proofs/** are private: no client read or write
+    match /payment-proofs/{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
