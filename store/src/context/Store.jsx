@@ -3,12 +3,14 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { api, cartToken, onAuthChange, tokens } from '../lib/api'
 import { store } from '../lib/storage'
 import { useToast } from './Toast'
+import { usePrefs } from './Prefs'
 
 const Ctx = createContext(null)
 export const useStore = () => useContext(Ctx)
 
 export function StoreProvider({ children }) {
   const toast = useToast()
+  const { t, pick, lang, setLang } = usePrefs()
   const [settings, setSettings] = useState(null)
   const [user, setUser] = useState(null)
   const [authReady, setAuthReady] = useState(false)
@@ -64,15 +66,17 @@ export function StoreProvider({ children }) {
     } catch { /* ignore */ }
   }, [])
 
-  const afterAuth = useCallback(async (data) => {
-    tokens.set(data)
+  const afterAuth = useCallback(async (data, remember = true) => {
+    tokens.set(data, remember)
     setUser(data.user)
     await Promise.all([refreshCart(), syncWishlist()])
     return data.user
   }, [refreshCart, syncWishlist])
 
-  const login = (email, password) => api('/api/auth/login', { method: 'POST', body: { email, password } }).then(afterAuth)
-  const register = (body) => api('/api/auth/register', { method: 'POST', body }).then(afterAuth)
+  const login = (email, password, remember = true) =>
+    api('/api/auth/login', { method: 'POST', body: { email, password, remember } }).then((d) => afterAuth(d, remember))
+  const register = (body) =>
+    api('/api/auth/register', { method: 'POST', body: { ...body, locale: lang } }).then((d) => afterAuth(d, body.remember !== false))
   const logout = async () => {
     const rt = tokens.refresh
     tokens.clear()
@@ -81,10 +85,20 @@ export function StoreProvider({ children }) {
     setCart(null)
     if (rt) api('/api/auth/logout', { method: 'POST', body: { refresh_token: rt }, auth: false }).catch(() => {})
     refreshCart()
-    toast.info('You are signed out')
+    toast.info(t('auth.signedOut'))
   }
 
   useEffect(() => { if (user) syncWishlist() }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // signed-in customers: use their saved language on first load; afterwards remember changes on the account
+  const userLocale = user?.locale
+  useEffect(() => { if (userLocale && !store.get('iq_lang')) setLang(userLocale) }, [userLocale]) // eslint-disable-line
+  useEffect(() => {
+    if (user && user.locale !== lang) {
+      api('/api/account/me', { method: 'PUT', body: { full_name: user.full_name, phone: user.phone || null, locale: lang } })
+        .then(setUser).catch(() => {})
+    }
+  }, [lang]) // eslint-disable-line
 
   // ---------- cart actions
   const addToCart = async (variant_id, quantity = 1, { silent } = {}) => {
@@ -113,7 +127,7 @@ export function StoreProvider({ children }) {
         toast.error(e.message)
       }
     }
-    toast.success(has ? 'Removed from wishlist' : `Saved ${product.name} to your wishlist`)
+    toast.success(has ? t('wishlist.removed') : t('wishlist.saved', { name: pick(product, 'name') }))
   }
 
   const value = useMemo(() => ({
@@ -121,7 +135,7 @@ export function StoreProvider({ children }) {
     cart, cartOpen, setCartOpen, refreshCart, addToCart, updateQty, changeVariant, removeItem, applyDiscount,
     removeDiscount, setCart: applyCart,
     wishIds, toggleWish, isWished: (id) => wishIds.includes(id),
-  }), [settings, user, authReady, cart, cartOpen, wishIds]) // eslint-disable-line react-hooks/exhaustive-deps
+  }), [settings, user, authReady, cart, cartOpen, wishIds, lang]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

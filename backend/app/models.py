@@ -102,6 +102,8 @@ class User(TimestampMixin, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     token_version: Mapped[int] = mapped_column(Integer, default=0)  # bump to revoke all sessions
+    locale: Mapped[str] = mapped_column(String(5), default="en", server_default="en")
+    terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     addresses: Mapped[list[Address]] = relationship(back_populates="user", cascade="all, delete-orphan")
     orders: Mapped[list[Order]] = relationship(back_populates="user")
@@ -120,6 +122,18 @@ class RefreshToken(Base):
     jti: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class PasswordResetToken(Base):
+    """Single-use password reset token. Only a SHA-256 hash is stored."""
+    __tablename__ = "password_reset_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
@@ -161,6 +175,7 @@ class Category(TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(60), unique=True)
+    name_km: Mapped[str] = mapped_column(String(80), default="", server_default="")
     slug: Mapped[str] = mapped_column(String(80), unique=True, index=True)
     description: Mapped[str] = mapped_column(Text, default="")
     image_url: Mapped[str | None] = mapped_column(String(500))
@@ -199,9 +214,11 @@ class Product(TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(160), index=True)
+    name_km: Mapped[str] = mapped_column(String(200), default="", server_default="")
     slug: Mapped[str] = mapped_column(String(180), unique=True, index=True)
     model: Mapped[str] = mapped_column(String(120), default="")  # manufacturer style code / model name
     description: Mapped[str] = mapped_column(Text, default="")
+    description_km: Mapped[str] = mapped_column(Text, default="", server_default="")
     gender: Mapped[Gender] = mapped_column(_enum(Gender, "gender"), default=Gender.unisex, index=True)
     price: Mapped[Decimal] = mapped_column(Money)
     sale_price: Mapped[Decimal | None] = mapped_column(Money)
@@ -246,6 +263,7 @@ class ProductImage(Base):
     width: Mapped[int | None] = mapped_column(Integer)
     height: Mapped[int | None] = mapped_column(Integer)
     alt: Mapped[str] = mapped_column(String(200), default="")
+    credit: Mapped[str] = mapped_column(String(300), default="", server_default="")  # photographer / licence
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
@@ -393,6 +411,11 @@ class Banner(TimestampMixin, Base):
     title: Mapped[str] = mapped_column(String(120))
     subtitle: Mapped[str] = mapped_column(String(255), default="")
     cta_label: Mapped[str] = mapped_column(String(40), default="Shop now")
+    eyebrow_km: Mapped[str] = mapped_column(String(80), default="", server_default="")
+    title_km: Mapped[str] = mapped_column(String(160), default="", server_default="")
+    subtitle_km: Mapped[str] = mapped_column(String(300), default="", server_default="")
+    cta_label_km: Mapped[str] = mapped_column(String(60), default="", server_default="")
+    image_credit: Mapped[str] = mapped_column(String(300), default="", server_default="")
     cta_link: Mapped[str] = mapped_column(String(255), default="/shop")
     image_url: Mapped[str] = mapped_column(String(500))
     image_key: Mapped[str | None] = mapped_column(String(300))

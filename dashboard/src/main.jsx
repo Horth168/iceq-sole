@@ -13,11 +13,18 @@ import Inventory from './pages/Inventory'
 import { CustomerDetail, Customers } from './pages/Customers'
 import Marketing, { Reviews } from './pages/Marketing'
 import Settings from './pages/Settings'
+import { PrefsProvider, useT } from './context/Prefs'
 import './index.css'
+
+function NotFound() {
+  const t = useT()
+  return <p className="py-20 text-center text-stone-450">{t('common.notFound')}</p>
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
+      <PrefsProvider>
       <ToastProvider>
         <AuthProvider>
           <Routes>
@@ -36,11 +43,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               <Route path="marketing" element={<Marketing />} />
               <Route path="reviews" element={<Reviews />} />
               <Route path="settings" element={<Settings />} />
-              <Route path="*" element={<p className="py-20 text-center text-stone-450">Page not found.</p>} />
+              <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
         </AuthProvider>
       </ToastProvider>
+      </PrefsProvider>
     </BrowserRouter>
   </React.StrictMode>,
 )

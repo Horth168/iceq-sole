@@ -19,6 +19,7 @@ def dt(v):
 
 def user_out(u: User) -> dict:
     return {"id": u.id, "email": u.email, "full_name": u.full_name, "phone": u.phone, "role": u.role.value,
+            "locale": u.locale or "en",
             "is_active": u.is_active, "created_at": dt(u.created_at), "last_login_at": dt(u.last_login_at)}
 
 
@@ -31,7 +32,8 @@ def brand_out(b: Brand, count: int | None = None) -> dict:
 
 
 def category_out(c: Category, count: int | None = None) -> dict:
-    d = {"id": c.id, "name": c.name, "slug": c.slug, "description": c.description, "image_url": c.image_url,
+    d = {"id": c.id, "name": c.name, "name_km": c.name_km or "", "slug": c.slug, "description": c.description,
+         "image_url": c.image_url,
          "is_active": c.is_active, "sort_order": c.sort_order}
     if count is not None:
         d["product_count"] = count
@@ -50,7 +52,7 @@ def image_out(i: ProductImage) -> dict:
     srcset = ", ".join(f"{r['url']} {w}w" for w, r in sorted((i.renditions or {}).items(), key=lambda x: int(x[0])))
     small = min((i.renditions or {}).items(), key=lambda x: int(x[0]), default=(None, {"url": i.url}))[1]["url"]
     return {"id": i.id, "url": i.url, "thumb_url": small, "srcset": srcset, "alt": i.alt,
-            "color_id": i.color_id, "is_primary": i.is_primary, "sort_order": i.sort_order,
+            "color_id": i.color_id, "is_primary": i.is_primary, "sort_order": i.sort_order, "credit": i.credit or "",
             "width": i.width, "height": i.height, "provider": i.provider}
 
 
@@ -80,9 +82,10 @@ def product_card(p: Product) -> dict:
     for v in sorted(active, key=lambda x: x.color.sort_order):
         colors.setdefault(v.color_id, {"id": v.color_id, "name": v.color.name, "hex": v.color.hex})
     return {
-        "id": p.id, "name": p.name, "slug": p.slug, "model": p.model,
+        "id": p.id, "name": p.name, "name_km": p.name_km or "", "slug": p.slug, "model": p.model,
         "brand": {"id": p.brand.id, "name": p.brand.name, "slug": p.brand.slug},
-        "category": {"id": p.category.id, "name": p.category.name, "slug": p.category.slug},
+        "category": {"id": p.category.id, "name": p.category.name, "name_km": p.category.name_km or "",
+                     "slug": p.category.slug},
         "gender": p.gender.value,
         "price": f(p.price), "sale_price": f(p.sale_price) if _discount_pct(p) else None,
         "effective_price": f(p.effective_price), "discount_percent": _discount_pct(p),
@@ -100,6 +103,7 @@ def product_detail(p: Product, admin: bool = False) -> dict:
     d = product_card(p)
     d.update(
         description=p.description,
+        description_km=p.description_km or "",
         images=[image_out(i) for i in p.images],
         variants=[variant_out(v, admin) for v in p.variants if admin or v.is_active],
         is_active=p.is_active, created_at=dt(p.created_at), updated_at=dt(p.updated_at),
@@ -207,6 +211,8 @@ def discount_out(d: Discount) -> dict:
 def banner_out(b: Banner) -> dict:
     return {"id": b.id, "placement": b.placement, "eyebrow": b.eyebrow, "title": b.title, "subtitle": b.subtitle,
             "cta_label": b.cta_label, "cta_link": b.cta_link, "image_url": b.image_url,
+            "eyebrow_km": b.eyebrow_km or "", "title_km": b.title_km or "", "subtitle_km": b.subtitle_km or "",
+            "cta_label_km": b.cta_label_km or "", "image_credit": b.image_credit or "",
             "mobile_image_url": b.mobile_image_url, "theme": b.theme, "sort_order": b.sort_order,
             "is_active": b.is_active}
 

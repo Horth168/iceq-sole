@@ -12,6 +12,9 @@ const Order = lazy(() => import('./pages/Order'))
 const Track = lazy(() => import('./pages/Track'))
 const Login = lazy(() => import('./pages/Auth').then((m) => ({ default: m.Login })))
 const Register = lazy(() => import('./pages/Auth').then((m) => ({ default: m.Register })))
+const ForgotPassword = lazy(() => import('./pages/Auth').then((m) => ({ default: m.ForgotPassword })))
+const ResetPassword = lazy(() => import('./pages/Auth').then((m) => ({ default: m.ResetPassword })))
+const Terms = lazy(() => import('./pages/Misc').then((m) => ({ default: m.Terms })))
 const AccountLayout = lazy(() => import('./pages/account/Account'))
 const Profile = lazy(() => import('./pages/account/Account').then((m) => ({ default: m.Profile })))
 const Orders = lazy(() => import('./pages/account/Account').then((m) => ({ default: m.Orders })))
@@ -45,6 +48,9 @@ export default function App() {
           <Route path="wishlist" element={<Wishlist />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="terms" element={<Terms />} />
           <Route path="about" element={<About />} />
           <Route path="account" element={<AccountLayout />}>
             <Route index element={<Profile />} />

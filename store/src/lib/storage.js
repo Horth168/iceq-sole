@@ -20,6 +20,13 @@ export const store = {
   setJson(key, value) { store.set(key, JSON.stringify(value)) },
 }
 
+// sessionStorage: used for sign-ins without "Remember me" (cleared when the browser closes)
+export const session = {
+  get(key) { try { return window.sessionStorage.getItem(key) } catch { return null } },
+  set(key, value) { try { window.sessionStorage.setItem(key, value) } catch { /* ignore */ } },
+  remove(key) { try { window.sessionStorage.removeItem(key) } catch { /* ignore */ } },
+}
+
 const RECENT = 'iq_recent'
 export const recentlyViewed = {
   list: () => store.json(RECENT, []),

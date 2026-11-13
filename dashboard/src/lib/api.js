@@ -1,5 +1,6 @@
 // Admin API client. Tokens are stored separately from the storefront session.
 import { store } from './storage'
+import { currentLang } from '../context/Prefs'
 
 const BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
 
@@ -31,7 +32,7 @@ export async function api(path, { method = 'GET', body, form, query, retry = tru
     if (v === undefined || v === null || v === '') return
     url.searchParams.set(k, v)
   })
-  const headers = {}
+  const headers = { 'Accept-Language': currentLang() }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   if (tokens.access) headers.Authorization = `Bearer ${tokens.access}`
   let res
@@ -39,7 +40,7 @@ export async function api(path, { method = 'GET', body, form, query, retry = tru
     res = await fetch(url, { method, headers, signal, body: form ?? (body !== undefined ? JSON.stringify(body) : undefined) })
   } catch (e) {
     if (e.name === 'AbortError') throw e
-    throw new ApiError('Cannot reach the API. Is the backend running?', 0)
+    throw new ApiError(currentLang() === 'km' ? 'មិនអាចភ្ជាប់ទៅម៉ាស៊ីនមេបានទេ។ សូមព្យាយាមម្តងទៀត។' : 'Cannot reach the API. Is the backend running?', 0)
   }
   if (res.status === 401 && retry && tokens.refresh) {
     try { await refresh(); return api(path, { method, body, form, query, retry: false, signal }) } catch { tokens.clear() }
@@ -57,6 +58,7 @@ export function upload(path, formData, onProgress, method = 'POST') {
       const xhr = new XMLHttpRequest()
       xhr.open(method, `${BASE}${path}`)
       if (tokens.access) xhr.setRequestHeader('Authorization', `Bearer ${tokens.access}`)
+      xhr.setRequestHeader('Accept-Language', currentLang())
       xhr.upload.onprogress = (e) => e.lengthComputable && onProgress?.(Math.round((e.loaded / e.total) * 100))
       xhr.onload = async () => {
         let data = null

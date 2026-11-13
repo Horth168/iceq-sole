@@ -1,18 +1,25 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
       colors: {
-        ink: { DEFAULT: '#0A0A0B', 800: '#1C1C1F', 700: '#2A2A2E', 600: '#3F3F45' },
-        bone: { DEFAULT: '#F5F4F0', 100: '#FAF9F7', 200: '#EDEBE6', 300: '#E2DFD8', 400: '#CFCBC2' },
-        stone: { 450: '#8A877F' },
-        ice: { 50: '#F0FAFE', 100: '#DDF3FC', 200: '#BDE7F8', 300: '#8FD6F5', 400: '#5DC1EC', 500: '#2BA6DA', 600: '#1683B3', 700: '#136890' },
+        // theme-aware tokens (see :root / .dark in index.css)
+        ink: { DEFAULT: 'rgb(var(--ink) / <alpha-value>)', 800: 'rgb(var(--ink-800) / <alpha-value>)', 700: 'rgb(var(--ink-700) / <alpha-value>)', 600: 'rgb(var(--ink-600) / <alpha-value>)' },
+        bone: { DEFAULT: 'rgb(var(--bone) / <alpha-value>)', 100: 'rgb(var(--bone-100) / <alpha-value>)', 200: 'rgb(var(--bone-200) / <alpha-value>)', 300: 'rgb(var(--bone-300) / <alpha-value>)', 400: 'rgb(var(--bone-400) / <alpha-value>)' },
+        white: 'rgb(var(--surface) / <alpha-value>)',
+        stone: { 450: 'rgb(var(--muted) / <alpha-value>)' },
+        // fixed colours for text/buttons on top of photos and always-dark sections
+        snow: '#FFFFFF',
+        night: { DEFAULT: '#0A0A0B', 800: '#17171A', 700: '#232328' },
+        ice: { 50: 'rgb(var(--ice-50) / <alpha-value>)', 100: 'rgb(var(--ice-100) / <alpha-value>)', 200: '#BDE7F8', 300: '#8FD6F5', 400: '#5DC1EC', 500: '#2BA6DA', 600: '#1683B3', 700: 'rgb(var(--ice-700) / <alpha-value>)' },
         signal: '#D93A2B',
       },
       fontFamily: {
-        sans: ['"Inter Variable"', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['"Archivo Variable"', 'Archivo', '"Inter Variable"', 'sans-serif'],
+        sans: ['"Inter Variable"', 'Inter', '"Kantumruy Pro Variable"', 'system-ui', 'sans-serif'],
+        display: ['"Archivo Variable"', 'Archivo', '"Kantumruy Pro Variable"', '"Inter Variable"', 'sans-serif'],
+        khmer: ['"Kantumruy Pro Variable"', '"Inter Variable"', 'sans-serif'],
       },
       letterSpacing: { tightest: '-0.045em' },
       boxShadow: {

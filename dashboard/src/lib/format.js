@@ -1,4 +1,7 @@
+import { currentLang } from '../context/Prefs'
+
 const TZ = 'Asia/Phnom_Penh'
+export const intlLocale = () => (currentLang() === 'km' ? 'km-KH' : 'en-GB')
 
 export const usd = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: n % 1 ? 2 : 0 }).format(n ?? 0)
@@ -8,7 +11,7 @@ export const usd2 = (n) => new Intl.NumberFormat('en-US', { style: 'currency', c
 export const khr = (n) => `${new Intl.NumberFormat('en-US').format(Math.round(n ?? 0))} ៛`
 
 export const date = (iso, opts = { dateStyle: 'medium' }) =>
-  iso ? new Intl.DateTimeFormat('en-GB', { timeZone: TZ, ...opts }).format(new Date(iso)) : ''
+  iso ? new Intl.DateTimeFormat(intlLocale(), { timeZone: TZ, ...opts }).format(new Date(iso)) : ''
 
 export const dateTime = (iso) => date(iso, { dateStyle: 'medium', timeStyle: 'short' })
 

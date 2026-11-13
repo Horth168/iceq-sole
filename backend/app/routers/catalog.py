@@ -57,8 +57,8 @@ def list_products(
     if q:
         like = f"%{q.strip()}%"
         query = query.join(Brand, Product.brand_id == Brand.id).where(
-            or_(Product.name.ilike(like), Product.model.ilike(like), Brand.name.ilike(like),
-                Product.description.ilike(like)))
+            or_(Product.name.ilike(like), Product.name_km.ilike(like), Product.model.ilike(like),
+                Brand.name.ilike(like), Product.description.ilike(like)))
     if brand:
         query = query.where(Product.brand_id.in_(select(Brand.id).where(Brand.slug.in_(brand))))
     if category:
@@ -134,7 +134,8 @@ def filter_options(db: Session = Depends(get_db)):
 def suggest(q: str = Query(..., min_length=1, max_length=80), db: Session = Depends(get_db)):
     like = f"%{q.strip()}%"
     products = db.scalars(_eager(select(Product).join(Brand).where(
-        Product.is_active.is_(True), or_(Product.name.ilike(like), Brand.name.ilike(like), Product.model.ilike(like)))
+        Product.is_active.is_(True), or_(Product.name.ilike(like), Product.name_km.ilike(like), Brand.name.ilike(like),
+                                         Product.model.ilike(like)))
         .order_by(Product.sold_count.desc()).limit(6))).unique().all()
     brands = db.query(Brand).filter(Brand.is_active.is_(True), Brand.name.ilike(like)).limit(4).all()
     return {"products": [product_card(p) for p in products], "brands": [brand_out(b) for b in brands]}

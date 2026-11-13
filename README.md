@@ -8,7 +8,17 @@ cloud image storage.
 | Part | Tech | Local URL |
 |---|---|---|
 | **Storefront** (`store/`) | React 18, Vite, Tailwind CSS, React Router, PWA | http://localhost:5173 |
-| **Admin dashboard** (`dashboard/`) | React 18, Vite, Tailwind CSS, Recharts | http://localhost:5174 |
+| **Language, theme and accounts**
+- Full **English / Khmer (ខ្មែរ)** interface on the storefront and dashboard, with the Kantumruy Pro font, Khmer product descriptions, category names and banners, and translated API error messages (`Accept-Language`). The choice is remembered.
+- **Light / dark mode** on both apps: follows the device setting until the visitor picks one, remembered in `localStorage`, applied before first paint (no flash).
+- Accounts: register (name, email, phone, password + confirmation, terms), sign in with "remember me", password eye toggles and strength meter, forgot/reset password by email (single-use links that expire after 60 minutes and sign out every session), profile, change password, protected pages and admin/staff/customer roles.
+
+**Product photography**
+- Demo products use **real photographs from Unsplash** (Unsplash License), each checked by eye against the exact model and colour, with the photographer credited on the site. The list with source pages is in [`backend/seed_assets/photos.json`](backend/seed_assets/photos.json).
+- A colourway only shows its own photos. Models or colours without a verified photo show a "photo coming soon" tile, and the dashboard lists them under **Products → Needs photo**, so you can upload your own product shots.
+- No AI-generated or unrelated shoe images are used for branded products.
+
+**Admin dashboard** (`dashboard/`) | React 18, Vite, Tailwind CSS, Recharts | http://localhost:5174 |
 | **API** (`backend/`) | Python 3.13, FastAPI, SQLAlchemy 2, Alembic, JWT | http://localhost:8000/api/docs |
 | **Database** | SQLite (development) · PostgreSQL (production) | — |
 | **Images** | Local disk (dev) · **Cloudflare R2** or Firebase Storage (prod) | — |
@@ -45,11 +55,21 @@ cloud image storage.
 - Guest order tracking by order number plus phone or email.
 - PWA: installable, standalone display, app icons, offline-cached assets, native-style bottom tab bar on phones.
 
+**Language, theme and accounts**
+- Full **English / Khmer (ខ្មែរ)** interface on the storefront and dashboard, with the Kantumruy Pro font, Khmer product descriptions, category names and banners, and translated API error messages (`Accept-Language`). The choice is remembered.
+- **Light / dark mode** on both apps: follows the device setting until the visitor picks one, remembered in `localStorage`, applied before first paint (no flash).
+- Accounts: register (name, email, phone, password + confirmation, terms), sign in with "remember me", password eye toggles and strength meter, forgot/reset password by email (single-use links that expire after 60 minutes and sign out every session), profile, change password, protected pages and admin/staff/customer roles.
+
+**Product photography**
+- Demo products use **real photographs from Unsplash** (Unsplash License), each checked by eye against the exact model and colour, with the photographer credited on the site. The list with source pages is in [`backend/seed_assets/photos.json`](backend/seed_assets/photos.json).
+- A colourway only shows its own photos. Models or colours without a verified photo show a "photo coming soon" tile, and the dashboard lists them under **Products → Needs photo**, so you can upload your own product shots.
+- No AI-generated or unrelated shoe images are used for branded products.
+
 **Admin dashboard**
 - Overview with real database KPIs: revenue, orders, products, customers, pending/completed orders, payments to verify, low stock, sales and orders charts (Phnom Penh time), recent transactions, best sellers.
 - Orders: search, status/payment/date filters, status workflow (Pending → Confirmed → Processing → Shipped → Delivered, Cancelled, Refunded), payment verification with screenshot preview, carrier and tracking, internal notes, timeline, printable invoice.
 - Products: create, edit, delete or archive, labels (featured, best seller, new, trending), visibility, prices and discounts, and a **colour × size stock matrix**.
-- Image manager: multi-upload with preview, upload progress, drag & drop, set main image, reorder, assign to a colour, replace, delete. Images are optimised to WebP in several widths.
+- Image manager: multi-upload with preview, upload progress, drag & drop, set main image, reorder, assign to a colour, photo credit, replace, delete. Images are optimised to WebP in several widths.
 - Brands, categories (with logos and images), colours and sizes.
 - Inventory: stock per variant, low/out/reserved filters, adjustments with reasons, full stock-movement history.
 - Customers: list, profile, contact info, addresses, order history, enable/disable.
@@ -289,6 +309,10 @@ All backend secrets live in `backend/.env` locally, or in your host's secret sto
 | `STORAGE_PROVIDER` + `R2_*` / `FIREBASE_*` | prod | Image storage |
 | `BAKONG_ACCOUNT_ID`, `BAKONG_API_TOKEN` | optional | KHQR generation and automatic verification |
 | `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS` | optional | Session lifetimes (30 min / 14 days) |
+| `REMEMBER_ME_DAYS`, `PASSWORD_RESET_EXPIRE_MINUTES` | optional | "Remember me" length (30 days) and reset-link lifetime (60 min) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | for password reset | Outgoing email. With Gmail use `smtp.gmail.com`, port `587` and an **App Password** (Google Account → Security → 2-Step Verification → App passwords), never your normal password |
+| `INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PASSWORD` | hosts without a shell | Creates the first admin at start-up if none exists; remove after first sign-in |
+| `SEED_DEMO_CATALOG` | optional | `true` loads the demo catalogue and photo update; keeps orders and customers |
 | `VITE_API_URL` (store, dashboard) | prod | API base URL baked into the frontend build |
 
 ---

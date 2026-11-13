@@ -5,19 +5,20 @@ import { api } from '../lib/api'
 import { cls } from '../lib/format'
 import { ProductGrid } from '../components/ProductCard'
 import { Drawer, EmptyState } from '../components/ui'
+import { usePrefs } from '../context/Prefs'
+import { useMeta } from '../lib/meta'
 
 const PRESETS = {
-  shop: { title: 'All sneakers', eyebrow: 'The full collection' },
-  new: { title: 'New arrivals', eyebrow: 'Fresh this season', query: { new_arrival: true }, sort: 'newest' },
-  best: { title: 'Best sellers', eyebrow: 'Customer favourites', query: { best_seller: true }, sort: 'best_selling' },
-  sale: { title: 'Sale', eyebrow: 'Limited-time prices', query: { on_sale: true }, sort: 'discount' },
+  shop: { title: 'shop.allTitle', eyebrow: 'shop.allEyebrow' },
+  new: { title: 'shop.newTitle', eyebrow: 'shop.newEyebrow', query: { new_arrival: true }, sort: 'newest' },
+  best: { title: 'shop.bestTitle', eyebrow: 'shop.bestEyebrow', query: { best_seller: true }, sort: 'best_selling' },
+  sale: { title: 'shop.saleTitle', eyebrow: 'shop.saleEyebrow', query: { on_sale: true }, sort: 'discount' },
 }
-const SORTS = [['featured', 'Featured'], ['newest', 'Newest'], ['best_selling', 'Best selling'], ['price_asc', 'Price: low to high'],
-  ['price_desc', 'Price: high to low'], ['rating', 'Top rated'], ['discount', 'Biggest discount']]
-const GENDERS = { men: 'Men', women: 'Women', unisex: 'Unisex', kids: 'Kids' }
+const SORTS = ['featured', 'newest', 'best_selling', 'price_asc', 'price_desc', 'rating', 'discount']
 const MULTI = ['brand', 'category', 'gender', 'size', 'color']
 
 export default function Shop({ preset = 'shop' }) {
+  const { t, pick } = usePrefs()
   const { slug } = useParams()
   const [params, setParams] = useSearchParams()
   const [meta, setMeta] = useState(null)
@@ -68,14 +69,15 @@ export default function Shop({ preset = 'shop' }) {
   }
   const clearAll = () => setParams(params.get('q') ? { q: params.get('q') } : {}, { replace: true })
 
-  const title = lockedBrand ? meta?.brands.find((b) => b.slug === slug)?.name || 'Brand'
-    : lockedCategory ? meta?.categories.find((c) => c.slug === slug)?.name || 'Category'
-      : params.get('q') ? `“${params.get('q')}”` : cfg.title
+  const title = lockedBrand ? meta?.brands.find((b) => b.slug === slug)?.name || t('shop.brand')
+    : lockedCategory ? pick(meta?.categories.find((c) => c.slug === slug), 'name') || t('shop.category')
+      : params.get('q') ? `“${params.get('q')}”` : t(cfg.title)
+  useMeta({ title, description: t('meta.homeDesc') })
   const active = [
-    ...MULTI.flatMap((k) => params.getAll(k).map((v) => ({ k, v, label: k === 'gender' ? GENDERS[v] : k === 'size' ? `EU ${v}` : meta?.[k === 'category' ? 'categories' : `${k}s`]?.find((x) => x.slug === v || x.name === v)?.name || v }))),
+    ...MULTI.flatMap((k) => params.getAll(k).map((v) => ({ k, v, label: k === 'gender' ? t(`shop.genders.${v}`) : k === 'size' ? `EU ${v}` : pick(meta?.[k === 'category' ? 'categories' : `${k}s`]?.find((x) => x.slug === v || x.name === v), 'name') || v }))),
     ...(params.get('min_price') || params.get('max_price') ? [{ k: 'price', label: `$${params.get('min_price') || 0} – $${params.get('max_price') || '∞'}` }] : []),
-    ...(params.get('in_stock') ? [{ k: 'in_stock', label: 'In stock' }] : []),
-    ...(params.get('on_sale') ? [{ k: 'on_sale', label: 'On sale' }] : []),
+    ...(params.get('in_stock') ? [{ k: 'in_stock', label: t('shop.inStockChip') }] : []),
+    ...(params.get('on_sale') ? [{ k: 'on_sale', label: t('shop.onSaleChip') }] : []),
   ]
   const removeChip = (c) => {
     if (c.k === 'price') setMany({ min_price: null, max_price: null })
@@ -89,44 +91,44 @@ export default function Shop({ preset = 'shop' }) {
 
   return (
     <div className="container-x pt-6 md:pt-10">
-      <nav className="mb-4 text-xs text-stone-450" aria-label="Breadcrumb">
-        <Link to="/" className="hover:text-ink">Home</Link> <span className="mx-1.5">/</span>
-        {lockedBrand && <><Link to="/brands" className="hover:text-ink">Brands</Link> <span className="mx-1.5">/</span></>}
+      <nav className="mb-4 text-xs text-stone-450" aria-label={t('shop.breadcrumb')}>
+        <Link to="/" className="hover:text-ink">{t('common.home')}</Link> <span className="mx-1.5">/</span>
+        {lockedBrand && <><Link to="/brands" className="hover:text-ink">{t('nav.brands')}</Link> <span className="mx-1.5">/</span></>}
         <span className="text-ink">{title}</span>
       </nav>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">{lockedBrand ? 'Brand' : lockedCategory ? 'Category' : params.get('q') ? 'Search results' : cfg.eyebrow}</p>
+          <p className="eyebrow">{lockedBrand ? t('shop.brand') : lockedCategory ? t('shop.category') : params.get('q') ? t('shop.results') : t(cfg.eyebrow)}</p>
           <h1 className="h-display mt-2 text-5xl sm:text-6xl lg:text-7xl">{title}</h1>
         </div>
-        <p className="pb-2 text-sm text-stone-450">{data ? `${data.total} style${data.total === 1 ? '' : 's'}` : ' '}</p>
+        <p className="pb-2 text-sm text-stone-450">{data ? t(data.total === 1 ? 'common.style' : 'common.styles', { n: data.total }) : ' '}</p>
       </div>
 
       {/* toolbar */}
       <div className="sticky top-16 z-30 -mx-4 mt-6 flex items-center gap-2 border-y border-ink/10 bg-bone/90 px-4 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6 md:top-[72px] lg:mx-0 lg:rounded-full lg:border lg:px-3">
-        <button onClick={() => setFiltersOpen(true)} className="chip lg:hidden"><SlidersHorizontal size={15} /> Filters{active.length ? ` (${active.length})` : ''}</button>
+        <button onClick={() => setFiltersOpen(true)} className="chip lg:hidden"><SlidersHorizontal size={15} /> {t('shop.filters')}{active.length ? ` (${active.length})` : ''}</button>
         <div className="no-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto">
           {active.map((c) => (
             <button key={c.k + (c.v || '')} onClick={() => removeChip(c)} className="chip chip-active shrink-0 !py-1.5">{c.label} <X size={13} /></button>
           ))}
-          {active.length > 0 && <button onClick={clearAll} className="shrink-0 px-2 text-sm font-semibold underline underline-offset-4">Clear all</button>}
+          {active.length > 0 && <button onClick={clearAll} className="shrink-0 px-2 text-sm font-semibold underline underline-offset-4">{t('shop.clearAll')}</button>}
         </div>
         <label className="relative shrink-0">
-          <span className="sr-only">Sort by</span>
+          <span className="sr-only">{t('shop.sortBy')}</span>
           <select value={query.sort} onChange={(e) => set('sort', e.target.value)}
             className="h-10 appearance-none rounded-full border border-ink/10 bg-white pl-4 pr-9 text-sm font-semibold outline-none focus:border-ink">
-            {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            {SORTS.map((v) => <option key={v} value={v}>{t(`shop.sort.${v}`)}</option>)}
           </select>
           <ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
         </label>
       </div>
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[250px_1fr]">
-        <aside className="hidden lg:block" aria-label="Filters">{filters || <div className="skeleton h-96" />}</aside>
+        <aside className="hidden lg:block" aria-label={t('shop.filters')}>{filters || <div className="skeleton h-96" />}</aside>
         <div>
           {!loading && data?.items.length === 0 ? (
-            <EmptyState icon={SearchX} title="No sneakers found" text="Try removing a filter or searching for another model."
-              action={<button onClick={clearAll} className="btn-primary">Clear filters</button>} />
+            <EmptyState icon={SearchX} title={t('shop.noneTitle')} text={t('shop.noneText')}
+              action={<button onClick={clearAll} className="btn-primary">{t('shop.clearFilters')}</button>} />
           ) : (
             <ProductGrid products={data?.items || []} loading={loading && !data} count={12} className={cls('md:!grid-cols-3', loading && data && 'opacity-60 transition')} />
           )}
@@ -141,11 +143,11 @@ export default function Shop({ preset = 'shop' }) {
         </div>
       </div>
 
-      <Drawer open={filtersOpen} onClose={() => setFiltersOpen(false)} side="bottom" title="Filters">
+      <Drawer open={filtersOpen} onClose={() => setFiltersOpen(false)} side="bottom" title={t('shop.filters')}>
         <div className="flex-1 overflow-y-auto px-5 py-4">{filters}</div>
         <div className="pb-safe grid grid-cols-2 gap-3 border-t border-ink/10 bg-white p-4">
-          <button className="btn-outline" onClick={clearAll}>Clear</button>
-          <button className="btn-primary" onClick={() => setFiltersOpen(false)}>Show {data?.total ?? ''} results</button>
+          <button className="btn-outline" onClick={clearAll}>{t('shop.clear')}</button>
+          <button className="btn-primary" onClick={() => setFiltersOpen(false)}>{t('shop.show', { n: data?.total ?? '' })}</button>
         </div>
       </Drawer>
     </div>
@@ -175,30 +177,31 @@ function Check({ checked, onChange, label, count }) {
 }
 
 function Filters({ meta, params, set, setMany, lockedBrand, lockedCategory }) {
+  const { t, pick } = usePrefs()
   const [min, setMin] = useState(params.get('min_price') || '')
   const [max, setMax] = useState(params.get('max_price') || '')
   useEffect(() => { setMin(params.get('min_price') || ''); setMax(params.get('max_price') || '') }, [params])
   const applyPrice = (e) => { e.preventDefault(); setMany({ min_price: min, max_price: max }) }
   return (
     <div>
-      <Group title="Availability">
-        <Check checked={params.get('in_stock') === 'true'} onChange={(e) => set('in_stock', e.target.checked ? 'true' : null)} label="In stock only" />
-        <Check checked={params.get('on_sale') === 'true'} onChange={(e) => set('on_sale', e.target.checked ? 'true' : null)} label="On sale" />
+      <Group title={t('shop.availability')}>
+        <Check checked={params.get('in_stock') === 'true'} onChange={(e) => set('in_stock', e.target.checked ? 'true' : null)} label={t('shop.inStock')} />
+        <Check checked={params.get('on_sale') === 'true'} onChange={(e) => set('on_sale', e.target.checked ? 'true' : null)} label={t('shop.onSale')} />
       </Group>
       {!lockedBrand && (
-        <Group title="Brand">
+        <Group title={t('shop.brand')}>
           {meta.brands.map((b) => <Check key={b.id} checked={params.getAll('brand').includes(b.slug)} onChange={() => set('brand', b.slug, true)} label={b.name} count={b.product_count} />)}
         </Group>
       )}
       {!lockedCategory && (
-        <Group title="Category">
-          {meta.categories.map((c) => <Check key={c.id} checked={params.getAll('category').includes(c.slug)} onChange={() => set('category', c.slug, true)} label={c.name} count={c.product_count} />)}
+        <Group title={t('shop.category')}>
+          {meta.categories.map((c) => <Check key={c.id} checked={params.getAll('category').includes(c.slug)} onChange={() => set('category', c.slug, true)} label={pick(c, 'name')} count={c.product_count} />)}
         </Group>
       )}
-      <Group title="Gender">
-        {meta.genders.map((g) => <Check key={g} checked={params.getAll('gender').includes(g)} onChange={() => set('gender', g, true)} label={GENDERS[g]} />)}
+      <Group title={t('shop.gender')}>
+        {meta.genders.map((g) => <Check key={g} checked={params.getAll('gender').includes(g)} onChange={() => set('gender', g, true)} label={t(`shop.genders.${g}`)} />)}
       </Group>
-      <Group title="Size (EU)">
+      <Group title={t('shop.size')}>
         <div className="grid grid-cols-4 gap-2">
           {meta.sizes.map((s) => {
             const on = params.getAll('size').includes(s.label)
@@ -207,7 +210,7 @@ function Filters({ meta, params, set, setMany, lockedBrand, lockedCategory }) {
           })}
         </div>
       </Group>
-      <Group title="Colour">
+      <Group title={t('shop.colour')}>
         <div className="grid grid-cols-5 gap-3">
           {meta.colors.map((c) => {
             const on = params.getAll('color').includes(c.name)
@@ -220,12 +223,12 @@ function Filters({ meta, params, set, setMany, lockedBrand, lockedCategory }) {
           })}
         </div>
       </Group>
-      <Group title="Price (USD)">
+      <Group title={t('shop.price')}>
         <form onSubmit={applyPrice} className="flex items-center gap-2">
-          <input inputMode="numeric" value={min} onChange={(e) => setMin(e.target.value.replace(/\D/g, ''))} placeholder={`${Math.floor(meta.price.min)}`} aria-label="Minimum price" className="field !min-h-[44px] !px-3" />
+          <input inputMode="numeric" value={min} onChange={(e) => setMin(e.target.value.replace(/\D/g, ''))} placeholder={`${Math.floor(meta.price.min)}`} aria-label={t('shop.min')} className="field !min-h-[44px] !px-3" />
           <span className="text-stone-450">–</span>
-          <input inputMode="numeric" value={max} onChange={(e) => setMax(e.target.value.replace(/\D/g, ''))} placeholder={`${Math.ceil(meta.price.max)}`} aria-label="Maximum price" className="field !min-h-[44px] !px-3" />
-          <button className="btn-primary !min-h-[44px] !px-4 text-sm">Go</button>
+          <input inputMode="numeric" value={max} onChange={(e) => setMax(e.target.value.replace(/\D/g, ''))} placeholder={`${Math.ceil(meta.price.max)}`} aria-label={t('shop.max')} className="field !min-h-[44px] !px-3" />
+          <button className="btn-primary !min-h-[44px] !px-4 text-sm">{t('shop.go')}</button>
         </form>
         <div className="mt-3 flex flex-wrap gap-2">
           {[[0, 80], [80, 120], [120, 160], [160, '']].map(([a, b]) => (

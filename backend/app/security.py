@@ -49,16 +49,19 @@ def create_access_token(user: User) -> str:
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
 
 
-def create_refresh_token(db: Session, user: User) -> str:
+def create_refresh_token(db: Session, user: User, remember: bool = True) -> str:
+    """remember=True keeps the session for REMEMBER_ME_DAYS, otherwise ~1 day."""
     jti = secrets.token_hex(24)
-    expires = _now() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    days = settings.REMEMBER_ME_DAYS if remember else 1
+    expires = _now() + timedelta(days=days)
     db.add(RefreshToken(user_id=user.id, jti=jti, expires_at=expires))
-    payload = {"sub": str(user.id), "jti": jti, "ver": user.token_version, "type": "refresh", "exp": expires}
+    payload = {"sub": str(user.id), "jti": jti, "ver": user.token_version, "type": "refresh", "exp": expires,
+               "rem": remember}
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
 
 
-def issue_tokens(db: Session, user: User) -> dict:
-    refresh = create_refresh_token(db, user)
+def issue_tokens(db: Session, user: User, remember: bool = True) -> dict:
+    refresh = create_refresh_token(db, user, remember)
     user.last_login_at = _now()
     db.commit()
     return {
@@ -91,7 +94,7 @@ def rotate_refresh_token(db: Session, token: str) -> dict:
         db.commit()
         raise invalid
     row.revoked = True
-    return issue_tokens(db, user)
+    return issue_tokens(db, user, remember=bool(payload.get("rem", True)))
 
 
 def revoke_refresh_token(db: Session, token: str) -> None:

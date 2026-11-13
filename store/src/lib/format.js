@@ -7,30 +7,31 @@ export const usd2 = (n) => new Intl.NumberFormat('en-US', { style: 'currency', c
 
 export const khr = (n) => `${new Intl.NumberFormat('en-US').format(Math.round(n ?? 0))} ៛`
 
+const loc = () => (document.documentElement.lang === 'km' ? 'km-KH' : 'en-GB')
+
 export const date = (iso, opts = { dateStyle: 'medium' }) =>
-  iso ? new Intl.DateTimeFormat('en-GB', { timeZone: TZ, ...opts }).format(new Date(iso)) : ''
+  iso ? new Intl.DateTimeFormat(loc(), { timeZone: TZ, ...opts }).format(new Date(iso)) : ''
 
 export const dateTime = (iso) => date(iso, { dateStyle: 'medium', timeStyle: 'short' })
 
 export const STATUS = {
-  pending: { label: 'Pending', tone: 'bg-amber-100 text-amber-800' },
-  confirmed: { label: 'Confirmed', tone: 'bg-ice-100 text-ice-700' },
-  processing: { label: 'Processing', tone: 'bg-indigo-100 text-indigo-700' },
-  shipped: { label: 'Shipped', tone: 'bg-violet-100 text-violet-700' },
-  delivered: { label: 'Delivered', tone: 'bg-emerald-100 text-emerald-700' },
-  cancelled: { label: 'Cancelled', tone: 'bg-stone-200 text-stone-600' },
-  refunded: { label: 'Refunded', tone: 'bg-rose-100 text-rose-700' },
+  pending: { tone: 'bg-amber-100 text-amber-800' },
+  confirmed: { tone: 'bg-ice-100 text-ice-700' },
+  processing: { tone: 'bg-indigo-100 text-indigo-700' },
+  shipped: { tone: 'bg-violet-100 text-violet-700' },
+  delivered: { tone: 'bg-emerald-100 text-emerald-700' },
+  cancelled: { tone: 'bg-stone-200 text-stone-600' },
+  refunded: { tone: 'bg-rose-100 text-rose-700' },
 }
 
 export const PAYMENT_STATUS = {
-  unpaid: { label: 'Awaiting payment', tone: 'bg-amber-100 text-amber-800' },
-  submitted: { label: 'Verifying payment', tone: 'bg-ice-100 text-ice-700' },
-  paid: { label: 'Paid', tone: 'bg-emerald-100 text-emerald-700' },
-  failed: { label: 'Payment issue', tone: 'bg-rose-100 text-rose-700' },
-  refunded: { label: 'Refunded', tone: 'bg-stone-200 text-stone-600' },
+  unpaid: { tone: 'bg-amber-100 text-amber-800' },
+  submitted: { tone: 'bg-ice-100 text-ice-700' },
+  paid: { tone: 'bg-emerald-100 text-emerald-700' },
+  failed: { tone: 'bg-rose-100 text-rose-700' },
+  refunded: { tone: 'bg-stone-200 text-stone-600' },
 }
 
-export const PAYMENT_METHOD = { khqr: 'ABA KHQR', bank_transfer: 'Bank transfer', cod: 'Cash on delivery' }
 
 export const cls = (...a) => a.filter(Boolean).join(' ')
 

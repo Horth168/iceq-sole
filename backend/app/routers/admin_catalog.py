@@ -20,7 +20,7 @@ router = APIRouter(prefix="/api/admin", tags=["Admin · catalog"])
 @router.get("/products")
 def admin_products(db: Session = Depends(get_db), _: User = Depends(require_staff),
                    q: str | None = Query(None, max_length=80), brand_id: int | None = None,
-                   category_id: int | None = None, status: str | None = Query(None, pattern="^(active|hidden|low|out)$"),
+                   category_id: int | None = None, status: str | None = Query(None, pattern="^(active|hidden|low|out|needs_photo)$"),
                    page: int = Query(1, ge=1), page_size: int = Query(25, ge=1, le=100)):
     query = select(Product).options(selectinload(Product.images), selectinload(Product.variants))
     if q:
@@ -35,6 +35,8 @@ def admin_products(db: Session = Depends(get_db), _: User = Depends(require_staf
         query = query.where(Product.is_active.is_(True))
     elif status == "hidden":
         query = query.where(Product.is_active.is_(False))
+    elif status == "needs_photo":
+        query = query.where(~Product.id.in_(select(ProductImage.product_id)))
     elif status in ("low", "out"):
         threshold = inventory.low_stock_threshold(db)
         avail = ProductVariant.stock - ProductVariant.reserved
@@ -218,6 +220,8 @@ def update_image(product_id: int, image_id: int, body: ImageUpdateIn, db: Sessio
     img = _image(db, product_id, image_id)
     if body.alt is not None:
         img.alt = body.alt
+    if body.credit is not None:
+        img.credit = body.credit
     if "color_id" in body.model_fields_set:
         img.color_id = body.color_id
     if body.is_primary:

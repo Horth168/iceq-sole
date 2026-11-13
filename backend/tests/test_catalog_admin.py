@@ -109,3 +109,21 @@ def test_taxonomy_crud(client, admin_headers, catalog):
     assert client.post("/api/admin/colors", json={"name": "Volt", "hex": "#CEFF00"}, headers=admin_headers).status_code == 201
     assert client.post("/api/admin/colors", json={"name": "Bad", "hex": "red"}, headers=admin_headers).status_code == 422
     assert client.post("/api/admin/sizes", json={"label": "44.5"}, headers=admin_headers).status_code == 201
+
+
+def test_bilingual_fields_needs_photo_and_sitemap(client, admin_headers, catalog):
+    pid = catalog["product"].id
+    r = client.get("/api/admin/products", params={"status": "needs_photo"}, headers=admin_headers)
+    assert r.json()["total"] == 1
+    p = client.get(f"/api/admin/products/{pid}", headers=admin_headers).json()
+    body = {"name": p["name"], "name_km": "ស្បែកជើងរត់សាកល្បង", "description": "Demo", "description_km": "ការពិពណ៌នា",
+            "gender": "unisex", "price": 100, "sale_price": 80, "brand_id": p["brand_id"], "category_id": p["category_id"],
+            "variants": [{"id": v["id"], "color_id": v["color_id"], "size_id": v["size_id"], "stock": v["stock"]} for v in p["variants"]]}
+    assert client.put(f"/api/admin/products/{pid}", json=body, headers=admin_headers).status_code == 200
+    detail = client.get("/api/products/test-runner").json()
+    assert detail["name_km"] == "ស្បែកជើងរត់សាកល្បង" and detail["description_km"] == "ការពិពណ៌នា"
+    assert client.get("/api/products", params={"q": "ស្បែកជើង"}).json()["total"] == 1
+    client.post(f"/api/admin/products/{pid}/images", files=[("files", ("a.png", png_bytes(), "image/png"))], headers=admin_headers)
+    assert client.get("/api/admin/products", params={"status": "needs_photo"}, headers=admin_headers).json()["total"] == 0
+    sm = client.get("/sitemap.xml")
+    assert sm.status_code == 200 and "/product/test-runner" in sm.text

@@ -10,14 +10,14 @@ export function LogoMark({ className = 'h-8 w-8', color = 'currentColor', accent
   )
 }
 
+// light = always white (on photos / dark sections); otherwise follows the theme
 export default function Logo({ className = '', light = false, compact = false }) {
-  const color = light ? '#FFFFFF' : '#0A0A0B'
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`} aria-label="IceQ Sole">
-      <LogoMark className="h-7 w-7 shrink-0 sm:h-8 sm:w-8" color={color} />
+    <span className={`keep-latin inline-flex items-center gap-2.5 ${light ? 'text-snow' : 'text-ink'} ${className}`} aria-label="IceQ Sole">
+      <LogoMark className="h-7 w-7 shrink-0 transition-transform duration-500 group-hover:rotate-[60deg] sm:h-8 sm:w-8" />
       {!compact && (
-        <span className="flex items-baseline gap-1.5 leading-none" style={{ color }}>
-          <span className="font-wide text-[19px] font-black tracking-[-0.02em] sm:text-[21px]">ICEQ</span>
+        <span className="flex items-baseline gap-1.5 leading-none">
+          <span className="font-wide text-[19px] font-black tracking-[-0.02em] sm:text-[21px]" style={{ fontFamily: "'Archivo Variable', sans-serif", fontStretch: '125%' }}>ICEQ</span>
           <span className="text-[11px] font-semibold uppercase tracking-[0.42em] opacity-70 sm:text-xs">Sole</span>
         </span>
       )}

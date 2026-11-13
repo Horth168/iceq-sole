@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertTriangle, Check, ChevronLeft, ChevronRight, Info, X } from 'lucide-react'
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Info, Moon, Sun, X } from 'lucide-react'
+import { usePrefs } from '../context/Prefs'
 import { assetUrl } from '../lib/api'
 import { cls } from '../lib/format'
 
@@ -22,8 +23,8 @@ export function ToastProvider({ children }) {
         {items.map((t) => {
           const Icon = t.type === 'error' ? AlertTriangle : t.type === 'success' ? Check : Info
           return (
-            <div key={t.id} className="pointer-events-auto flex w-full max-w-sm animate-fade-up items-center gap-3 rounded-2xl bg-ink px-4 py-3 text-sm text-white shadow-lift">
-              <span className={cls('grid h-6 w-6 place-items-center rounded-full', t.type === 'error' ? 'bg-signal' : t.type === 'success' ? 'bg-ice-300 text-ink' : 'bg-white/20')}><Icon size={13} strokeWidth={3} /></span>
+            <div key={t.id} className="pointer-events-auto flex w-full max-w-sm animate-fade-up items-center gap-3 rounded-2xl bg-night px-4 py-3 text-sm text-snow shadow-lift ring-1 ring-white/10">
+              <span className={cls('grid h-6 w-6 place-items-center rounded-full', t.type === 'error' ? 'bg-signal' : t.type === 'success' ? 'bg-ice-300 text-night' : 'bg-snow/20')}><Icon size={13} strokeWidth={3} /></span>
               <p className="flex-1">{t.message}</p>
             </div>
           )
@@ -56,8 +57,8 @@ export function Toggle({ checked, onChange, label, disabled }) {
   return (
     <label className={cls('flex cursor-pointer select-none items-center gap-3 text-sm', disabled && 'opacity-50')}>
       <button type="button" role="switch" aria-checked={checked} disabled={disabled} onClick={() => onChange(!checked)}
-        className={cls('relative h-6 w-11 shrink-0 rounded-full transition', checked ? 'bg-ink' : 'bg-bone-300')}>
-        <span className={cls('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all', checked ? 'left-[22px]' : 'left-0.5')} />
+        className={cls('relative h-6 w-11 shrink-0 rounded-full transition', checked ? 'bg-ink' : 'bg-bone-400')}>
+        <span className={cls('absolute top-0.5 h-5 w-5 rounded-full bg-snow shadow transition-all', checked ? 'left-[22px]' : 'left-0.5')} />
       </button>
       {label}
     </label>
@@ -108,17 +109,19 @@ export function Empty({ icon: Icon, title, text, action }) {
 }
 
 export function Pagination({ page, pages, onChange }) {
+  const { t } = usePrefs()
   if (!pages || pages <= 1) return null
   return (
     <div className="flex items-center justify-end gap-2 px-5 py-4 text-sm">
-      <span className="text-stone-450">Page {page} of {pages}</span>
-      <button className="btn-outline !min-h-[36px] !px-3" disabled={page <= 1} onClick={() => onChange(page - 1)} aria-label="Previous page"><ChevronLeft size={16} /></button>
-      <button className="btn-outline !min-h-[36px] !px-3" disabled={page >= pages} onClick={() => onChange(page + 1)} aria-label="Next page"><ChevronRight size={16} /></button>
+      <span className="text-stone-450">{t('common.page', { page, pages })}</span>
+      <button className="btn-outline !min-h-[36px] !px-3" disabled={page <= 1} onClick={() => onChange(page - 1)} aria-label={t('common.prev')}><ChevronLeft size={16} /></button>
+      <button className="btn-outline !min-h-[36px] !px-3" disabled={page >= pages} onClick={() => onChange(page + 1)} aria-label={t('common.next')}><ChevronRight size={16} /></button>
     </div>
   )
 }
 
 export function Modal({ open, onClose, title, children, footer, wide }) {
+  const { t } = usePrefs()
   useEffect(() => {
     if (!open) return
     const k = (e) => e.key === 'Escape' && onClose()
@@ -130,11 +133,11 @@ export function Modal({ open, onClose, title, children, footer, wide }) {
   if (!open) return null
   return createPortal(
     <div className="fixed inset-0 z-[90] flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="absolute inset-0 animate-fade-in bg-ink/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 animate-fade-in bg-night/60 backdrop-blur-sm" onClick={onClose} />
       <div className={cls('relative flex max-h-[92dvh] w-full animate-slide-up flex-col rounded-t-3xl bg-bone-100 shadow-lift sm:animate-fade-up sm:rounded-3xl', wide ? 'sm:max-w-3xl' : 'sm:max-w-lg')}>
         <div className="flex items-center justify-between border-b border-ink/10 px-6 py-4">
           <h2 className="font-display text-lg font-bold">{title}</h2>
-          <button onClick={onClose} aria-label="Close" className="grid h-9 w-9 place-items-center rounded-full hover:bg-ink/5"><X size={18} /></button>
+          <button onClick={onClose} aria-label={t('common.close')} className="grid h-9 w-9 place-items-center rounded-full hover:bg-ink/5"><X size={18} /></button>
         </div>
         <div className="overflow-y-auto px-6 py-5">{children}</div>
         {footer && <div className="flex justify-end gap-2 border-t border-ink/10 px-6 py-4">{footer}</div>}
@@ -157,7 +160,9 @@ export function Stat({ label, value, sub, icon: Icon, tone = 'bg-ice-50 text-ice
   )
 }
 
-export function SearchInput({ value, onChange, placeholder = 'Search…' }) {
+export function SearchInput({ value, onChange, placeholder }) {
+  const { t } = usePrefs()
+  placeholder ||= t('common.search')
   const [v, setV] = useState(value || '')
   useEffect(() => setV(value || ''), [value])
   useEffect(() => { const t = setTimeout(() => v !== (value || '') && onChange(v), 300); return () => clearTimeout(t) }, [v]) // eslint-disable-line
@@ -165,3 +170,27 @@ export function SearchInput({ value, onChange, placeholder = 'Search…' }) {
 }
 
 export const errMap = (e) => (e?.data?.errors ? Object.fromEntries(e.data.errors.map((x) => [x.field.split('.').pop(), x.message])) : {})
+
+// ---------------------------------------------------------------- theme + language switches
+export function ThemeToggle({ className = '' }) {
+  const { theme, setTheme, t } = usePrefs()
+  const dark = theme === 'dark'
+  return (
+    <button type="button" onClick={() => setTheme(dark ? 'light' : 'dark')} aria-label={dark ? t('common.light') : t('common.dark')} title={dark ? t('common.light') : t('common.dark')}
+      className={cls('grid h-10 w-10 place-items-center rounded-full transition hover:bg-ink/5', className)}>
+      <span key={theme} className="animate-fade-in">{dark ? <Sun size={19} /> : <Moon size={19} />}</span>
+    </button>
+  )
+}
+
+export function LangToggle({ className = '' }) {
+  const { lang, setLang, t } = usePrefs()
+  return (
+    <div role="group" aria-label={t('common.language')} className={cls('flex rounded-full border border-ink/10 p-0.5 text-xs font-semibold', className)}>
+      {[['en', 'EN'], ['km', 'ខ្មែរ']].map(([k, l]) => (
+        <button key={k} type="button" onClick={() => setLang(k)} aria-pressed={lang === k} lang={k}
+          className={cls('rounded-full px-2.5 py-1 transition', lang === k ? 'bg-ink text-white' : 'text-stone-450 hover:text-ink')}>{l}</button>
+      ))}
+    </div>
+  )
+}

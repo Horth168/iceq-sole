@@ -1,18 +1,52 @@
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource-variable/kantumruy-pro';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ---------- theme tokens (RGB channels) ---------- */
+:root {
+  --ink: 10 10 11; --ink-800: 28 28 31; --ink-700: 42 42 46; --ink-600: 63 63 69;
+  --bone: 245 244 240; --bone-100: 250 249 247; --bone-200: 237 235 230; --bone-300: 226 223 216; --bone-400: 207 203 194;
+  --surface: 255 255 255; --muted: 128 125 117;
+  --ice-50: 240 250 254; --ice-100: 221 243 252; --ice-700: 19 104 144;
+  color-scheme: light;
+}
+.dark {
+  --ink: 242 241 238; --ink-800: 222 220 215; --ink-700: 200 197 190; --ink-600: 170 167 160;
+  --bone: 11 11 13; --bone-100: 17 17 20; --bone-200: 30 30 35; --bone-300: 44 44 50; --bone-400: 66 66 74;
+  --surface: 23 23 27; --muted: 152 149 142;
+  --ice-50: 14 38 51; --ice-100: 17 54 72; --ice-700: 143 214 245;
+  color-scheme: dark;
+}
+
 @layer base {
   html { -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
-  body { font-feature-settings: 'cv11', 'ss01'; overflow-x: hidden; }
+  body { font-feature-settings: 'cv11', 'ss01'; overflow-x: hidden; @apply bg-bone text-ink; }
   ::selection { background: #8FD6F5; color: #0A0A0B; }
   :focus-visible { outline: 2px solid #1683B3; outline-offset: 2px; }
   input, select, textarea { font-size: 16px; } /* prevents iOS zoom on focus */
   @media (min-width: 768px) { input, select, textarea { font-size: 15px; } }
+
+  /* Khmer: dedicated font, no uppercase/tight tracking, taller lines for stacked glyphs */
+  html[lang='km'] body { font-family: 'Kantumruy Pro Variable', 'Inter Variable', sans-serif; }
+  html[lang='km'] .h-display, html[lang='km'] .eyebrow, html[lang='km'] .font-wide {
+    font-family: 'Kantumruy Pro Variable', 'Archivo Variable', sans-serif; text-transform: none; letter-spacing: 0; font-stretch: 100%;
+  }
+  html[lang='km'] .h-display { line-height: 1.35; font-weight: 700; }
+  html[lang='km'] .eyebrow { font-size: 12px; }
+  html[lang='km'] .leading-snug, html[lang='km'] .leading-none, html[lang='km'] .leading-tight { line-height: 1.6; }
+  html[lang='km'] .keep-latin { font-family: 'Archivo Variable', sans-serif; }
 }
+
+/* smooth colour change only while switching theme (avoids slowing normal interactions) */
+.theme-anim, .theme-anim *, .theme-anim *::before, .theme-anim *::after {
+  transition: background-color .35s ease, border-color .35s ease, color .35s ease, fill .35s ease !important;
+}
+
+
 
 @layer components {
   .container-x { @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-10; }
@@ -30,17 +64,33 @@
   .label { @apply mb-1.5 block text-[13px] font-medium text-ink-700; }
   .chip { @apply inline-flex items-center gap-1.5 rounded-full border border-ink/10 bg-white px-3.5 py-2 text-sm font-medium text-ink transition hover:border-ink/40; }
   .chip-active { @apply border-ink bg-ink text-white hover:border-ink; }
-  .card { @apply rounded-2xl bg-white shadow-soft; }
+  .card { @apply rounded-2xl bg-white shadow-soft dark:shadow-none dark:ring-1 dark:ring-white/5; }
   .link-underline { @apply relative after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-full after:origin-right after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:origin-left hover:after:scale-x-100; }
   .skeleton { @apply relative overflow-hidden rounded-xl bg-bone-200; }
-  .skeleton::after { content: ''; @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/60 to-transparent; }
+  .skeleton::after { content: ''; @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
   .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
   .pt-safe { padding-top: env(safe-area-inset-top); }
 }
 
+/* tinted status pills stay readable in dark mode */
+.dark .bg-amber-100 { background: rgb(245 158 11 / .16); } .dark .text-amber-800 { color: #FCD34D; } .dark .text-amber-700 { color: #FBBF24; }
+.dark .bg-emerald-100, .dark .bg-emerald-50 { background: rgb(16 185 129 / .15); } .dark .text-emerald-700, .dark .text-emerald-800 { color: #6EE7B7; }
+.dark .bg-rose-100, .dark .bg-rose-50 { background: rgb(244 63 94 / .15); } .dark .text-rose-700 { color: #FDA4AF; }
+.dark .bg-indigo-100 { background: rgb(99 102 241 / .18); } .dark .text-indigo-700 { color: #A5B4FC; }
+.dark .bg-violet-100 { background: rgb(139 92 246 / .18); } .dark .text-violet-700 { color: #C4B5FD; }
+.dark .bg-stone-200 { background: rgb(120 113 108 / .25); } .dark .text-stone-600 { color: #D6D3D1; }
+.dark .bg-amber-50 { background: rgb(245 158 11 / .12); } .dark .text-amber-900 { color: #FDE68A; }
+
 .reveal { animation: fade-up .7s cubic-bezier(.2,.7,.2,1) both; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
+/* printable documents (invoice) always use the light palette */
+.force-light {
+  --ink: 10 10 11; --ink-800: 28 28 31; --ink-700: 42 42 46; --ink-600: 63 63 69;
+  --bone: 245 244 240; --bone-100: 250 249 247; --bone-200: 237 235 230; --bone-300: 226 223 216; --bone-400: 207 203 194;
+  --surface: 255 255 255; --muted: 128 125 117; color-scheme: light;
 }

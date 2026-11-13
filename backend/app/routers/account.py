@@ -20,6 +20,8 @@ def me(user: User = Depends(get_current_user)):
 def update_profile(body: ProfileIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     user.full_name = body.full_name
     user.phone = body.phone
+    if body.locale:
+        user.locale = body.locale
     db.commit()
     return user_out(user)
 

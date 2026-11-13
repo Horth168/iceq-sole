@@ -3,3 +3,6 @@ Allow: /
 Disallow: /checkout
 Disallow: /account
 Disallow: /order/
+Disallow: /reset-password
+
+Sitemap: https://iceq-sole-store.onrender.com/sitemap.xml

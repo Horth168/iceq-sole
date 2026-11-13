@@ -5,7 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>IceQ Sole — Premium Sneakers in Cambodia</title>
     <meta name="description" content="IceQ Sole: premium sneakers from Nike, Air Jordan, Adidas, New Balance and more. Fast delivery across Cambodia. Pay with KHQR, bank transfer or cash on delivery." />
-    <meta name="theme-color" content="#0A0A0B" />
+    <meta name="theme-color" content="#F5F4F0" />
+    <script>
+      // Apply saved theme + language before first paint (prevents a flash of the wrong theme)
+      (function () {
+        try {
+          var t = localStorage.getItem('iq_theme');
+          if (!t) t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          if (t === 'dark') { document.documentElement.classList.add('dark'); document.documentElement.style.colorScheme = 'dark';
+            document.querySelector('meta[name=theme-color]').setAttribute('content', '#0B0B0D'); }
+          var l = localStorage.getItem('iq_lang');
+          if (!l) l = (navigator.language || '').toLowerCase().indexOf('km') === 0 ? 'km' : 'en';
+          document.documentElement.lang = l;
+        } catch (e) {}
+      })();
+    </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="IceQ Sole" />
@@ -14,8 +28,11 @@
     <meta property="og:title" content="IceQ Sole — Premium Sneakers" />
     <meta property="og:description" content="Stay cold. Walk loud. Premium sneakers delivered across Cambodia." />
     <meta property="og:image" content="/images/og-cover.jpg" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="/" />
   </head>
-  <body class="bg-bone text-ink antialiased">
+  <body class="antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

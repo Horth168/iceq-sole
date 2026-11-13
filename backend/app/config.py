@@ -52,6 +52,16 @@ class Settings(BaseSettings):
     BAKONG_API_URL: str = "https://api-bakong.nbc.gov.kh"
     KHQR_EXPIRY_MINUTES: int = 30
 
+    # --- Email (password reset) - e.g. Gmail: smtp.gmail.com / 587 / your Gmail / App password ---
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = ""
+    SMTP_FROM_NAME: str = "IceQ Sole"
+    PASSWORD_RESET_EXPIRE_MINUTES: int = 60
+    REMEMBER_ME_DAYS: int = 30
+
     # --- Locale ---
     TIMEZONE: str = "Asia/Phnom_Penh"
 

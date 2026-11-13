@@ -31,8 +31,12 @@ def _province(v: str) -> str:
 class RegisterIn(Strict):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
+    password_confirm: str = Field(max_length=128)
     full_name: str = Field(min_length=2, max_length=120)
     phone: str | None = None
+    accept_terms: bool
+    locale: Literal["en", "km"] = "en"
+    remember: bool = True
 
     _p = field_validator("phone")(lambda cls, v: _phone(v))
     _n = field_validator("full_name")(lambda cls, v: clean_text(v, 120))
@@ -44,10 +48,37 @@ class RegisterIn(Strict):
             raise ValueError("Password must contain letters and numbers")
         return v
 
+    @model_validator(mode="after")
+    def _confirm(self):
+        if self.password != self.password_confirm:
+            raise ValueError("Passwords do not match")
+        if not self.accept_terms:
+            raise ValueError("Please accept the terms and conditions")
+        return self
+
 
 class LoginIn(Strict):
     email: str = Field(min_length=3, max_length=255)
     password: str = Field(min_length=1, max_length=128)
+    remember: bool = True
+
+
+class ForgotPasswordIn(Strict):
+    email: EmailStr
+
+
+class ResetPasswordIn(Strict):
+    token: str = Field(min_length=20, max_length=200)
+    password: str = Field(min_length=8, max_length=128)
+    password_confirm: str = Field(max_length=128)
+
+    @model_validator(mode="after")
+    def _check(self):
+        if not re.search(r"[A-Za-z]", self.password) or not re.search(r"\d", self.password):
+            raise ValueError("Password must contain letters and numbers")
+        if self.password != self.password_confirm:
+            raise ValueError("Passwords do not match")
+        return self
 
 
 class RefreshIn(Strict):
@@ -57,6 +88,7 @@ class RefreshIn(Strict):
 class ProfileIn(Strict):
     full_name: str = Field(min_length=2, max_length=120)
     phone: str | None = None
+    locale: Literal["en", "km"] | None = None
     _p = field_validator("phone")(lambda cls, v: _phone(v))
 
 
@@ -155,7 +187,7 @@ class BrandIn(Strict):
 
 
 class CategoryIn(BrandIn):
-    pass
+    name_km: str = Field(default="", max_length=80)
 
 
 class ColorIn(Strict):
@@ -182,9 +214,11 @@ class VariantIn(Strict):
 
 class ProductIn(Strict):
     name: str = Field(min_length=2, max_length=160)
+    name_km: str = Field(default="", max_length=200)
     slug: str | None = Field(default=None, max_length=180)
     model: str = Field(default="", max_length=120)
     description: str = Field(default="", max_length=10000)
+    description_km: str = Field(default="", max_length=10000)
     gender: Gender = Gender.unisex
     price: Decimal = Field(ge=0, le=100000)
     sale_price: Decimal | None = Field(default=None, ge=0)
@@ -209,6 +243,7 @@ class ProductIn(Strict):
 
 class ImageUpdateIn(Strict):
     alt: str | None = Field(default=None, max_length=200)
+    credit: str | None = Field(default=None, max_length=300)
     color_id: int | None = None
     is_primary: bool | None = None
 
@@ -291,6 +326,11 @@ class BannerIn(Strict):
     title: str = Field(min_length=1, max_length=120)
     subtitle: str = Field(default="", max_length=255)
     cta_label: str = Field(default="Shop now", max_length=40)
+    eyebrow_km: str = Field(default="", max_length=80)
+    title_km: str = Field(default="", max_length=160)
+    subtitle_km: str = Field(default="", max_length=300)
+    cta_label_km: str = Field(default="", max_length=60)
+    image_credit: str = Field(default="", max_length=300)
     cta_link: str = Field(default="/shop", max_length=255, pattern=r"^(/|https://)")
     theme: Literal["dark", "light"] = "dark"
     sort_order: int = 0

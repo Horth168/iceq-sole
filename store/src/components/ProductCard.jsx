@@ -2,51 +2,55 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, Heart } from 'lucide-react'
 import { useStore } from '../context/Store'
+import { usePrefs } from '../context/Prefs'
 import { cls } from '../lib/format'
-import { Badge, Img, Price } from './ui'
+import { Badge, Img, Price, Reveal, useTilt } from './ui'
 import QuickView from './QuickView'
 
-export default function ProductCard({ product: p, priority = false, sizes }) {
+export default function ProductCard({ product: p, priority = false, sizes, index = 0 }) {
   const { isWished, toggleWish } = useStore()
+  const { t, pick } = usePrefs()
   const [quick, setQuick] = useState(false)
+  const [pop, setPop] = useState(false)
+  const tilt = useTilt(6)
   const wished = isWished(p.id)
-  const label = !p.in_stock ? ['Sold out', 'bg-ink text-white']
-    : p.discount_percent ? [`−${p.discount_percent}%`, 'bg-signal text-white']
-      : p.is_new_arrival ? ['New', 'bg-ice-300 text-ink']
-        : p.is_best_seller ? ['Best seller', 'bg-white text-ink'] : null
+  const name = pick(p, 'name')
+  const label = !p.in_stock ? [t('card.soldOut'), 'bg-ink text-white']
+    : p.discount_percent ? [t('card.off', { n: p.discount_percent }), 'bg-signal text-snow']
+      : p.is_new_arrival ? [t('card.new'), 'bg-ice-300 text-night']
+        : p.is_best_seller ? [t('card.bestSeller'), 'bg-white text-ink'] : null
+  const heart = () => { setPop(true); setTimeout(() => setPop(false), 450); toggleWish(p) }
 
   return (
-    <article className="group relative">
-      <div className="relative overflow-hidden rounded-2xl bg-bone-200">
-        <Link to={`/product/${p.slug}`} aria-label={p.name} className="block">
+    <Reveal as="article" className="group relative" delay={Math.min(index, 4) * 60}>
+      <div ref={tilt.ref} onPointerMove={tilt.onPointerMove} onPointerLeave={tilt.onPointerLeave}
+        className="tilt relative overflow-hidden rounded-2xl bg-bone-200 shadow-none transition-shadow duration-500 group-hover:shadow-lift">
+        <Link to={`/product/${p.slug}`} aria-label={name} className="block">
           <div className="relative aspect-square">
-            <Img image={p.image} alt={p.name} priority={priority} sizes={sizes || '(min-width:1280px) 22vw, (min-width:768px) 30vw, 48vw'}
-              className={cls('absolute inset-0 transition duration-700 group-hover:scale-[1.04]', !p.in_stock && 'opacity-70')} />
+            <Img image={p.image} alt={name} priority={priority} sizes={sizes || '(min-width:1280px) 22vw, (min-width:768px) 30vw, 48vw'}
+              className={cls('absolute inset-0 transition duration-700 ease-out group-hover:scale-[1.06]', !p.in_stock && 'opacity-70')} />
             {p.hover_image && (
               <Img image={p.hover_image} alt="" className="absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100 max-md:hidden" />
             )}
+            <div className="tilt-glare pointer-events-none absolute inset-0 opacity-0 mix-blend-soft-light transition-opacity duration-300 group-hover:opacity-100" />
           </div>
         </Link>
         {label && <Badge tone={label[1]} className="absolute left-3 top-3 shadow-sm">{label[0]}</Badge>}
-        <button
-          onClick={() => toggleWish(p)}
-          aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
-          aria-pressed={wished}
-          className="absolute right-2.5 top-2.5 grid h-10 w-10 place-items-center rounded-full bg-white/85 backdrop-blur transition hover:scale-105 hover:bg-white">
-          <Heart size={18} className={cls('transition', wished ? 'fill-signal text-signal' : 'text-ink')} />
+        <button onClick={heart} aria-label={wished ? t('card.removeWish') : t('card.addWish')} aria-pressed={wished}
+          className="absolute right-2.5 top-2.5 grid h-10 w-10 place-items-center rounded-full bg-white/85 backdrop-blur transition hover:scale-110 hover:bg-white active:scale-90">
+          <Heart size={18} className={cls('transition', wished ? 'fill-signal text-signal' : 'text-ink', pop && 'animate-pop')} />
         </button>
-        <button
-          onClick={() => setQuick(true)}
-          className="absolute inset-x-3 bottom-3 hidden translate-y-3 items-center justify-center gap-2 rounded-full bg-white/95 py-3 text-sm font-semibold opacity-0 shadow-soft backdrop-blur transition duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:flex">
-          <Eye size={16} /> Quick view
+        <button onClick={() => setQuick(true)}
+          className="absolute inset-x-3 bottom-3 hidden translate-y-3 items-center justify-center gap-2 rounded-full bg-white/95 py-3 text-sm font-semibold opacity-0 shadow-soft backdrop-blur transition duration-300 hover:bg-ink hover:text-white group-hover:translate-y-0 group-hover:opacity-100 md:flex">
+          <Eye size={16} /> {t('card.quickView')}
         </button>
       </div>
       <div className="px-0.5 pt-3">
         <div className="flex items-start justify-between gap-2">
-          <p className="eyebrow !text-[10px]">{p.brand.name}</p>
-          {p.colors?.length > 1 && <p className="text-[11px] text-stone-450">{p.colors.length} colours</p>}
+          <p className="eyebrow keep-latin !text-[10px]">{p.brand.name}</p>
+          {p.colors?.length > 1 && <p className="text-[11px] text-stone-450">{t('common.colours', { n: p.colors.length })}</p>}
         </div>
-        <Link to={`/product/${p.slug}`} className="mt-1 line-clamp-2 block text-[15px] font-semibold leading-snug hover:underline">{p.name}</Link>
+        <Link to={`/product/${p.slug}`} className="mt-1 line-clamp-2 block text-[15px] font-semibold leading-snug hover:underline">{name}</Link>
         <div className="mt-1.5 flex items-center justify-between gap-2">
           <Price price={p.price} sale={p.sale_price} />
           <div className="flex -space-x-1">
@@ -58,10 +62,10 @@ export default function ProductCard({ product: p, priority = false, sizes }) {
         {p.in_stock && p.sizes?.length > 0 && (
           <p className="mt-1 truncate text-xs text-stone-450">EU {p.sizes.slice(0, 6).join(' · ')}{p.sizes.length > 6 ? ' …' : ''}</p>
         )}
-        <button onClick={() => setQuick(true)} className="mt-2 text-xs font-semibold underline underline-offset-4 md:hidden">Quick add</button>
+        <button onClick={() => setQuick(true)} className="mt-2 text-xs font-semibold underline underline-offset-4 md:hidden">{t('card.quickAdd')}</button>
       </div>
       {quick && <QuickView slug={p.slug} onClose={() => setQuick(false)} />}
-    </article>
+    </Reveal>
   )
 }
 
@@ -81,7 +85,7 @@ export function ProductGrid({ products, loading, count = 8, className = '' }) {
     <div className={cls('grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-3 xl:grid-cols-4', className)}>
       {loading
         ? Array.from({ length: count }).map((_, i) => <ProductCardSkeleton key={i} />)
-        : products.map((p, i) => <ProductCard key={p.id} product={p} priority={i < 4} />)}
+        : products.map((p, i) => <ProductCard key={p.id} product={p} priority={i < 4} index={i % 4} />)}
     </div>
   )
 }

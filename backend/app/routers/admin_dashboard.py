@@ -7,8 +7,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import (Order, OrderItem, OrderStatus, Payment, PaymentStatus, Product, ProductVariant, Role,
-                        User)
+from app.models import (Order, OrderItem, OrderStatus, Payment, PaymentStatus, Product, ProductImage, ProductVariant,
+                        Role, User)
 from app.security import require_staff
 from app.serializers import dt, f, order_row
 from app.services import inventory
@@ -72,6 +72,8 @@ def dashboard(days: int = Query(30, ge=7, le=365), db: Session = Depends(get_db)
             "completed_orders": status_counts.get(OrderStatus.delivered, 0),
             "awaiting_payment_verification": awaiting_payment,
             "low_stock": low_count,
+            "needs_photo": db.scalar(select(func.count()).select_from(Product).where(
+                ~Product.id.in_(select(ProductImage.product_id)))),
         },
         "status_counts": {s.value: status_counts.get(s, 0) for s in OrderStatus},
         "sales_chart": chart,

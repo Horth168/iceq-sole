@@ -1,5 +1,5 @@
 // Thin fetch wrapper: JSON, auth headers, silent token refresh and the guest cart token.
-import { store } from './storage'
+import { session, store } from './storage'
 
 const BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
 
@@ -15,16 +15,21 @@ let refreshing = null
 const listeners = new Set()
 export const onAuthChange = (fn) => (listeners.add(fn), () => listeners.delete(fn))
 
+// "Remember me" keeps tokens in localStorage; otherwise sessionStorage (gone when the browser closes).
 export const tokens = {
-  get access() { return store.get('iq_access') },
-  get refresh() { return store.get('iq_refresh') },
-  set({ access_token, refresh_token }) {
-    store.set('iq_access', access_token)
-    store.set('iq_refresh', refresh_token)
+  get access() { return store.get('iq_access') || session.get('iq_access') },
+  get refresh() { return store.get('iq_refresh') || session.get('iq_refresh') },
+  get remembered() { return !!store.get('iq_refresh') || !session.get('iq_refresh') },
+  set({ access_token, refresh_token }, remember = tokens.remembered) {
+    const target = remember ? store : session
+    const other = remember ? session : store
+    target.set('iq_access', access_token)
+    target.set('iq_refresh', refresh_token)
+    other.remove('iq_access')
+    other.remove('iq_refresh')
   },
   clear() {
-    store.remove('iq_access')
-    store.remove('iq_refresh')
+    ;[store, session].forEach((s) => { s.remove('iq_access'); s.remove('iq_refresh') })
     listeners.forEach((fn) => fn(null))
   },
 }
@@ -58,7 +63,7 @@ export async function api(path, { method = 'GET', body, form, query, auth = true
       else url.searchParams.set(k, v)
     })
   }
-  const headers = {}
+  const headers = { 'Accept-Language': document.documentElement.lang || 'en' }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   if (auth && tokens.access) headers.Authorization = `Bearer ${tokens.access}`
   if (cartToken.get()) headers['X-Cart-Token'] = cartToken.get()
@@ -68,7 +73,9 @@ export async function api(path, { method = 'GET', body, form, query, auth = true
     res = await fetch(url, { method, headers, signal, body: form ?? (body !== undefined ? JSON.stringify(body) : undefined) })
   } catch (e) {
     if (e.name === 'AbortError') throw e
-    throw new ApiError('You appear to be offline. Check your connection and try again.', 0)
+    throw new ApiError(document.documentElement.lang === 'km'
+      ? 'ហាក់ដូចជាអ្នកមិនបានភ្ជាប់អ៊ីនធឺណិត។ សូមពិនិត្យការតភ្ជាប់ ហើយព្យាយាមម្តងទៀត។'
+      : 'You appear to be offline. Check your connection and try again.', 0)
   }
   if (res.status === 401 && auth && retry && tokens.refresh) {
     try {
@@ -89,6 +96,7 @@ export function upload(path, formData, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
     xhr.open('POST', `${BASE}${path}`)
+    xhr.setRequestHeader('Accept-Language', document.documentElement.lang || 'en')
     if (tokens.access) xhr.setRequestHeader('Authorization', `Bearer ${tokens.access}`)
     if (cartToken.get()) xhr.setRequestHeader('X-Cart-Token', cartToken.get())
     xhr.upload.onprogress = (e) => e.lengthComputable && onProgress?.(Math.round((e.loaded / e.total) * 100))
