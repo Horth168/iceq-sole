@@ -25,6 +25,8 @@ def _log(db: Session, variant: ProductVariant, change: int, reserved_change: int
 
 
 def reserve(db: Session, variant: ProductVariant, qty: int, reference: str) -> None:
+    db.refresh(variant)
+    before = variant.available
     result = db.execute(
         update(ProductVariant)
         .where(ProductVariant.id == variant.id,
@@ -39,6 +41,7 @@ def reserve(db: Session, variant: ProductVariant, qty: int, reference: str) -> N
         raise HTTPException(409, f"{name} ({variant.color.name}, EU {variant.size.label}) only has "
                                  f"{variant.available} left in stock")
     _log(db, variant, 0, qty, MovementReason.order_reserved, reference)
+    _alert_if_crossed(db, variant, before)
 
 
 def commit_order(db: Session, order: Order, user_id: int | None = None) -> None:
@@ -57,8 +60,7 @@ def commit_order(db: Session, order: Order, user_id: int | None = None) -> None:
         _log(db, v, -item.quantity, -item.quantity, MovementReason.order_confirmed, order.order_number, user_id=user_id)
         if v.product:
             v.product.sold_count = (v.product.sold_count or 0) + item.quantity
-    order.stock_committed = True
-    _low_stock_alerts(db, [i.variant_id for i in order.items if i.variant_id])
+    order.stock_committed = True  # available (stock - reserved) is unchanged, so no new alert
 
 
 def release_order(db: Session, order: Order, user_id: int | None = None, restock: bool = True) -> None:
@@ -97,25 +99,28 @@ def adjust(db: Session, variant: ProductVariant, *, change: int | None = None, s
     if new_stock < 0:
         raise HTTPException(400, "Stock cannot be negative")
     delta = new_stock - variant.stock
+    before = variant.available
     if delta == 0:
         return
     variant.stock = new_stock
     db.flush()
     _log(db, variant, delta, 0, reason, note=note, user_id=user_id)
-    _low_stock_alerts(db, [variant.id])
+    _alert_if_crossed(db, variant, before)
 
 
 def low_stock_threshold(db: Session) -> int:
     return int(get_setting(db, "inventory").get("low_stock_threshold", 3))
 
 
-def _low_stock_alerts(db: Session, variant_ids: list[int]) -> None:
+def _alert_if_crossed(db: Session, v: ProductVariant, before: int) -> None:
+    """Notify admins only when availability CROSSES the threshold (no repeated spam)."""
     threshold = low_stock_threshold(db)
-    for vid in set(variant_ids):
-        v = db.get(ProductVariant, vid)
-        if v and v.is_active and v.available <= threshold:
-            label = f"{v.product.name} · {v.color.name} · EU {v.size.label}"
-            db.add(Notification(user_id=None, type="low_stock",
-                                title="Out of stock" if v.available == 0 else "Low stock",
-                                message=f"{label} has {v.available} pair(s) available",
-                                link=f"/inventory?q={v.sku}"))
+    after = v.available
+    if not v.is_active or after > threshold or before <= after:
+        return
+    if before > threshold or (after == 0 and before > 0):
+        label = f"{v.product.name} · {v.color.name} · EU {v.size.label}"
+        db.add(Notification(user_id=None, type="low_stock",
+                            title="Out of stock" if after == 0 else "Low stock",
+                            message=f"{label} has {after} pair(s) available",
+                            link=f"/inventory?q={v.sku}"))

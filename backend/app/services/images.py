@@ -73,8 +73,11 @@ def store_image(data: bytes, folder: str, widths=PRODUCT_WIDTHS) -> StoredImage:
     base = f"{folder.strip('/')}/{uuid.uuid4().hex}"
     renditions: dict[str, dict] = {}
     uploaded: list[str] = []
+    targets = sorted(set(widths))
+    if img.width < targets[-1] and img.width > targets[0] and img.width not in targets:
+        targets = [w for w in targets if w < img.width] + [img.width]  # keep full resolution, never upscale
     try:
-        for target in sorted(set(widths)):
+        for target in targets:
             if renditions and target > img.width:
                 continue  # never upscale
             body, w, h = _encode_webp(img, target)

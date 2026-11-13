@@ -72,13 +72,22 @@ def all_settings(db: Session) -> dict:
 
 def public_settings(db: Session) -> dict:
     data = {k: get_setting(db, k) for k in PUBLIC_KEYS}
-    pay = get_setting(db, "payments")
-    data["payments"] = {
-        "khqr_enabled": pay["khqr_enabled"],
-        "bank_transfer_enabled": pay["bank_transfer_enabled"],
-        "cod_enabled": pay["cod_enabled"],
-    }
+    data["payments"] = available_methods(db)
     return data
+
+
+def available_methods(db: Session) -> dict:
+    """A method is only offered when it is switched on AND actually payable."""
+    from app.config import settings
+
+    pay = get_setting(db, "payments")
+    has_bank = bool((pay.get("bank_account_number") or "").strip())
+    has_qr = bool(settings.BAKONG_ACCOUNT_ID or pay.get("khqr_static_image_url"))
+    return {
+        "khqr_enabled": bool(pay["khqr_enabled"] and has_qr),
+        "bank_transfer_enabled": bool(pay["bank_transfer_enabled"] and has_bank),
+        "cod_enabled": bool(pay["cod_enabled"]),
+    }
 
 
 def _deep_merge(base: dict, extra: dict) -> None:

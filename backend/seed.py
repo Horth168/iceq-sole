@@ -19,7 +19,7 @@ from pathlib import Path
 
 from app.config import settings
 from app.database import Base, SessionLocal, engine
-from app.models import (Banner, Brand, Category, Color, Discount, DiscountType, Gender, MovementReason, Order,
+from app.models import (Banner, Brand, Notification, Category, Color, Discount, DiscountType, Gender, MovementReason, Order,
                         OrderItem, OrderStatus, Payment, PaymentMethod, PaymentStatus, Product, ProductImage,
                         ProductVariant, Review, Role, Size, User)
 from app.placeholders import sneaker_svg
@@ -123,7 +123,7 @@ def put_svg(key: str, svg: str) -> str:
 
 def seed_catalog(db) -> None:
     if db.query(Product).first():
-        print("Catalog already seeded — skipping (use --reset to start over)")
+        print("Catalog already seeded - skipping (use --reset to start over)")
         return
     brands = {n: Brand(name=n, slug=slugify(n), description=d, sort_order=i) for i, (n, d) in enumerate(BRANDS)}
     cats = {n: Category(name=n, slug=slugify(n), description=d, sort_order=i) for i, (n, d) in enumerate(CATEGORIES)}
@@ -157,7 +157,7 @@ def seed_catalog(db) -> None:
                                    stock=0, reserved=0)
                 db.add(v)
                 db.flush()
-                qty = rng.choice([0, 1, 2, 3, 4, 5, 6, 8, 10, 12]) if rng.random() > 0.08 else 0
+                qty = rng.choice([2, 4, 5, 6, 6, 8, 8, 10, 12, 15]) if rng.random() > 0.05 else 0
                 if qty:
                     inventory.adjust(db, v, set_to=qty, reason=MovementReason.initial, note="Seed stock",
                                      user_id=admin.id if admin else None)
@@ -210,7 +210,7 @@ def seed_marketing(db) -> None:
         for placement, eyebrow, title, subtitle, cta, link, img, mimg, theme, order in banner_specs:
             path = ASSETS / "banners" / f"{img}.jpg"
             if not path.exists():
-                print(f"  (banner image {path.name} missing — banner skipped)")
+                print(f"  (banner image {path.name} missing - banner skipped)")
                 continue
             s = image_svc.store_image(path.read_bytes(), "banners", widths=image_svc.BANNER_WIDTHS)
             b = Banner(placement=placement, eyebrow=eyebrow, title=title, subtitle=subtitle, cta_label=cta,
@@ -240,7 +240,7 @@ def seed_reviews(db) -> None:
 
 def seed_demo_orders(db, count: int = 36) -> None:
     if db.query(Order).first():
-        print("Orders exist — skipping demo orders")
+        print("Orders exist - skipping demo orders")
         return
     customers = []
     for i, (n, ph) in enumerate([("Sokha Pich", "012345678"), ("Dara Kim", "092888123"), ("Bopha Lim", "077654321"),
@@ -300,6 +300,7 @@ def seed_demo_orders(db, count: int = 36) -> None:
             p_.created_at = created
         for h in o.history:
             h.created_at = created
+    db.query(Notification).update({"is_read": True})  # demo history shouldn't look like new alerts
     db.commit()
     print(f"Created demo customers and {db.query(Order).count()} demo orders")
 

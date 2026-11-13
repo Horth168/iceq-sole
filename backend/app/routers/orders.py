@@ -14,7 +14,7 @@ from app.services import images, inventory, khqr
 from app.services import orders as svc
 from app.services.cart_service import cart_lines, get_cart
 from app.services.pricing import build_quote
-from app.services.settings_store import get_setting
+from app.services.settings_store import available_methods
 from app.utils import new_order_number, normalize_kh_phone
 
 router = APIRouter(prefix="/api", tags=["Checkout & orders"])
@@ -38,9 +38,9 @@ def checkout(request: Request, body: CheckoutIn, db: Session = Depends(get_db),
     if existing:
         return _checkout_response(db, existing)
 
-    pay_cfg = get_setting(db, "payments")
-    enabled = {PaymentMethod.khqr: pay_cfg.get("khqr_enabled"), PaymentMethod.bank_transfer: pay_cfg.get("bank_transfer_enabled"),
-               PaymentMethod.cod: pay_cfg.get("cod_enabled")}
+    avail = available_methods(db)
+    enabled = {PaymentMethod.khqr: avail["khqr_enabled"], PaymentMethod.bank_transfer: avail["bank_transfer_enabled"],
+               PaymentMethod.cod: avail["cod_enabled"]}
     if not enabled.get(body.payment_method):
         raise HTTPException(400, "This payment method is not available")
 
