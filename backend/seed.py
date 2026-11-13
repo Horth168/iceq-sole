@@ -36,7 +36,7 @@ PHOTOS = json.loads((ASSETS / "photos.json").read_text(encoding="utf-8"))["photo
 rng = random.Random(7)
 
 # Bump when sync_catalog() learns something new; it runs once per version on existing databases.
-SYNC_KEY, SYNC_VERSION = "seed_sync", 1
+SYNC_KEY, SYNC_VERSION = "seed_sync", 2
 
 BRANDS = [
     ("Nike", "Performance and street icons from Beaverton."),
@@ -99,13 +99,13 @@ P = [
     ("Forum Low", "Adidas", "Basketball", "unisex", 110, None, "", ["Blue", "White"],
      "Eighties basketball heritage with the signature ankle strap detail.",
      "មរតកបាល់បោះទសវត្សរ៍ទី៨០ ជាមួយខ្សែរឹតកជើងដែលជាសញ្ញាសម្គាល់។"),
-    ("550", "New Balance", "Basketball", "unisex", 110, None, "bt", ["White", "Green"],
+    ("550", "New Balance", "Basketball", "unisex", 110, None, "bt", ["Green", "Blue", "White"],
      "A late-eighties court shoe brought back with clean, low-key styling.",
      "ស្បែកជើងទីលានចុងទសវត្សរ៍ទី៨០ ដែលត្រលប់មកវិញជាមួយរចនាបថស្អាត និងសាមញ្ញ។"),
-    ("530", "New Balance", "Running", "women", 100, None, "fn", ["Grey", "Cream"],
+    ("530", "New Balance", "Running", "women", 100, None, "fn", ["White", "Cream", "Grey"],
      "Retro running lines with a chunky, comfortable sole.",
      "ខ្សែបន្ទាត់ស្បែកជើងរត់បែបរេត្រូ ជាមួយបាតក្រាស់ និងផាសុកភាព។"),
-    ("9060", "New Balance", "Lifestyle", "men", 150, 129, "t", ["Grey", "Sand"],
+    ("9060", "New Balance", "Lifestyle", "men", 150, 129, "t", ["White", "Grey", "Sand"],
      "Futuristic layered design with a sculpted, wavy sole.",
      "ការរចនាជាន់គ្នាបែបអនាគត ជាមួយបាតរាងរលកដែលឆ្លាក់យ៉ាងស្អាត។"),
     ("Suede Classic", "Puma", "Retro", "unisex", 75, 59, "", ["Red", "Black", "Navy"],
@@ -154,7 +154,7 @@ BANNERS = {
 
 
 def credit(photo: dict) -> str:
-    return f"{photo['credit']} / Unsplash"
+    return f"{photo['credit']} / {photo.get('site', 'Unsplash')}"
 
 
 def photos_for(target: str, color: str | None = None) -> list[dict]:
@@ -239,7 +239,8 @@ def sync_catalog(db, force: bool = False) -> None:
     Orders, customers, stock levels and anything an admin uploaded are left alone.
     """
     flag = db.get(StoreSetting, SYNC_KEY)
-    if flag and (flag.value or {}).get("version", 0) >= SYNC_VERSION and not force:
+    done = (flag.value or {}).get("version", 0) if flag else 0
+    if done >= SYNC_VERSION and not force:
         return
     brands, cats, colors, sizes = ensure_taxonomy(db)
     admin = db.query(User).filter(User.role == Role.admin).first()
@@ -287,7 +288,7 @@ def sync_catalog(db, force: bool = False) -> None:
             for prod in db.query(Product).filter(Product.brand_id == b.id):
                 prod.is_active = False
 
-    for c in cats.values():
+    for c in cats.values() if done < 1 or force else []:  # once; later admin uploads stay
         ph = photos_for(f"cat:{c.slug}")
         if ph:
             if c.image_key:
@@ -295,13 +296,24 @@ def sync_catalog(db, force: bool = False) -> None:
             s = image_svc.store_image((ASSETS / ph[0]["file"]).read_bytes(), "categories", widths=(480, 1200))
             c.image_url, c.image_key = s.url, s.key
 
+    # v2: a model without a single verified photo is hidden until real photography is uploaded
+    # (Dashboard -> Products -> Needs photo, then switch it back to visible)
+    hidden = []
+    if done < 2:
+        for spec in P:
+            prod = db.query(Product).filter(Product.slug == slugify(full_name(spec[0], spec[1]))).first()
+            if prod and not prod.images and prod.is_active:
+                prod.is_active = False
+                hidden.append(prod.slug)
+
     sync_banners(db)
     if flag:
         flag.value = {"version": SYNC_VERSION}
     else:
         db.add(StoreSetting(key=SYNC_KEY, value={"version": SYNC_VERSION}))
     db.commit()
-    print(f"Catalogue sync v{SYNC_VERSION}: removed {len(svgs)} illustrations, added {created} products and {photos} photos")
+    print(f"Catalogue sync v{SYNC_VERSION}: removed {len(svgs)} illustrations, added {created} products and {photos} photos"
+          + (f", hid {len(hidden)} products without photos" if hidden else ""))
 
 
 def _set_banner_photo(db, b: Banner, spec: dict) -> None:
