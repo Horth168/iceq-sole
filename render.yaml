@@ -49,10 +49,8 @@ services:
         sync: false
       - key: R2_PUBLIC_URL
         sync: false
-      - key: BAKONG_ACCOUNT_ID
-        sync: false
-      - key: BAKONG_API_TOKEN
-        sync: false
+      # Optional, add later in Render -> iceq-sole-api -> Environment:
+      #   BAKONG_ACCOUNT_ID, BAKONG_API_TOKEN  (ABA / Bakong KHQR auto-verification)
       - key: INITIAL_ADMIN_EMAIL      # first admin (no shell on free plan); remove after first login
         sync: false
       - key: INITIAL_ADMIN_PASSWORD
