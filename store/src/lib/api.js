@@ -111,4 +111,5 @@ export function upload(path, formData, onProgress) {
   })
 }
 
-export const assetUrl = (u) => (!u ? '' : /^https?:|^data:/.test(u) ? u : `${BASE}${u}`)
+// API-relative paths (/uploads/…) get the API host; the store's own public files (/images/…, /icons/…) stay on this site.
+export const assetUrl = (u) => (!u ? '' : /^https?:|^data:|^blob:|^\/(images|icons)\//.test(u) ? u : `${BASE}${u}`)
