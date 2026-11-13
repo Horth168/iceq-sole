@@ -5,4 +5,4 @@ Disallow: /account
 Disallow: /order/
 Disallow: /reset-password
 
-Sitemap: https://iceq-sole-store.onrender.com/sitemap.xml
+Sitemap: https://iceq-sole-api.onrender.com/sitemap.xml
