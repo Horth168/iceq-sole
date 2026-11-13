@@ -309,7 +309,14 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--reset", action="store_true", help="drop all tables first (development only)")
     ap.add_argument("--demo-orders", action="store_true", help="also create demo customers and orders")
+    ap.add_argument("--if-env", action="store_true",
+                    help="only run when SEED_DEMO_CATALOG=true (start-up hook for hosts without a shell)")
     args = ap.parse_args()
+    if args.if_env:
+        import os
+        if os.environ.get("SEED_DEMO_CATALOG", "").lower() != "true":
+            return
+        args.reset = args.demo_orders = False  # never wipe data or invent orders in production
     if args.reset:
         if settings.is_production:
             raise SystemExit("Refusing to reset a production database")

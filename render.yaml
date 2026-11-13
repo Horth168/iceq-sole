@@ -16,7 +16,7 @@ services:
     plan: free          # sleeps after 15 min idle; use `starter` (+ preDeployCommand) for real customers
     buildCommand: pip install -r requirements.txt
     # Free instances can't use preDeployCommand, so migrations run at start-up (safe to repeat)
-    startCommand: alembic upgrade head && python create_admin.py --from-env && gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:$PORT --timeout 120
+    startCommand: alembic upgrade head && python create_admin.py --from-env && python seed.py --if-env && gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:$PORT --timeout 120
     healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION
@@ -37,6 +37,8 @@ services:
         sync: false
       - key: STORAGE_PROVIDER
         value: cloudflare
+      - key: SEED_DEMO_CATALOG        # loads the demo catalogue once (skipped if products exist); set false for a real launch
+        value: "true"
       - key: R2_ACCOUNT_ID
         sync: false
       - key: R2_ACCESS_KEY_ID
