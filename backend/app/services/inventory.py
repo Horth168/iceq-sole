@@ -124,3 +124,5 @@ def _alert_if_crossed(db: Session, v: ProductVariant, before: int) -> None:
                             title="Out of stock" if after == 0 else "Low stock",
                             message=f"{label} has {after} pair(s) available",
                             link=f"/inventory?q={v.sku}"))
+        from app.services import telegram as tg  # local import: avoids an import cycle
+        tg.low_stock(db, "Out of stock" if after == 0 else "Low stock", f"{label} has {after} pair(s) available")

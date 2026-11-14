@@ -53,6 +53,11 @@ class Settings(BaseSettings):
     KHQR_EXPIRY_MINUTES: int = 30
 
     # --- Email (password reset) - e.g. Gmail: smtp.gmail.com / 587 / your Gmail / App password ---
+    # Telegram alerts + one-tap payment confirmation (bot from @BotFather; chat IDs = who may confirm)
+    TELEGRAM_BOT_TOKEN: str = ""
+    TELEGRAM_ADMIN_CHAT_IDS: str = ""  # comma separated numeric chat IDs
+    DASHBOARD_URL: str = ""            # optional, for "open in dashboard" links
+
     SMTP_HOST: str = ""
     SMTP_PORT: int = 587
     SMTP_USER: str = ""

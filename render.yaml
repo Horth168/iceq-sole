@@ -51,6 +51,7 @@ services:
       #   BAKONG_ACCOUNT_ID, BAKONG_API_TOKEN  (ABA / Bakong KHQR auto-verification)
       #   SMTP_HOST=smtp.gmail.com, SMTP_PORT=587, SMTP_USER, SMTP_PASSWORD (Gmail App Password),
       #   SMTP_FROM  (password-reset emails; without them reset links are not sent)
+      #   TELEGRAM_BOT_TOKEN, TELEGRAM_ADMIN_CHAT_IDS, DASHBOARD_URL  (order alerts + one-tap payment confirmation)
       - key: INITIAL_ADMIN_EMAIL      # first admin (no shell on free plan); remove after first login
         sync: false
       - key: INITIAL_ADMIN_PASSWORD

@@ -169,6 +169,8 @@ export default {
     tax: 'ពន្ធ', taxEnabled: 'គិត / បង្ហាញពន្ធ', label: 'ស្លាក', ratePct: 'អត្រា %', inclusive: 'តម្លៃរួមបញ្ចូលពន្ធរួចហើយ',
     inventory: 'ស្តុក', lowAt: 'ជូនដំណឹងស្តុកទាបនៅ (គូក្នុងមួយវ៉ារ្យ៉ង់)', system: 'ស្ថានភាពប្រព័ន្ធ', storage: 'កន្លែងផ្ទុករូបភាព',
     localWarn: '(សម្រាប់អភិវឌ្ឍន៍តែប៉ុណ្ណោះ — កំណត់ STORAGE_PROVIDER=cloudflare សម្រាប់ផលិតកម្ម)', environment: 'បរិស្ថាន', timezone: 'ល្វែងម៉ោង',
+    telegram: 'ការជូនដំណឹង Telegram', tgOk: 'បានភ្ជាប់ Telegram៖ ការបញ្ជាទិញ និងការទូទាត់មកដល់ជាមួយប៊ូតុង បានទទួល / មិនបានទទួល',
+    tgNo: 'មិនទាន់ភ្ជាប់ Telegram៖ កំណត់ TELEGRAM_BOT_TOKEN និង TELEGRAM_ADMIN_CHAT_IDS ក្នុង backend',
     autoVerify: 'ផ្ទៀងផ្ទាត់ KHQR ស្វ័យប្រវត្តិ', email: 'អ៊ីមែលកំណត់ពាក្យសម្ងាត់ឡើងវិញ',
     emailOk: 'បានកំណត់ SMTP', emailNo: 'មិនទាន់កំណត់ — កំណត់អថេរ SMTP_* ក្នុង backend',
     secrets: 'ព័ត៌មានសម្ងាត់ (មូលដ្ឋានទិន្នន័យ កូនសោផ្ទុក Bakong token ពាក្យសម្ងាត់ SMTP) មានតែក្នុងអថេរបរិស្ថាន backend ហើយមិនដែលផ្ញើមកផ្ទាំងនេះទេ។',

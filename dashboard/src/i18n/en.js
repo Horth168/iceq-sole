@@ -169,6 +169,8 @@ export default {
     tax: 'Tax', taxEnabled: 'Charge / show tax', label: 'Label', ratePct: 'Rate %', inclusive: 'Prices already include tax',
     inventory: 'Inventory', lowAt: 'Low-stock alert at (pairs per variant)', system: 'System status', storage: 'Image storage',
     localWarn: '(development only — set STORAGE_PROVIDER=cloudflare for production)', environment: 'Environment', timezone: 'Time zone',
+    telegram: 'Telegram alerts', tgOk: 'Telegram connected: orders and payments arrive with Received / Not received buttons',
+    tgNo: 'Telegram not connected: set TELEGRAM_BOT_TOKEN and TELEGRAM_ADMIN_CHAT_IDS in the backend environment',
     autoVerify: 'KHQR auto-verify', email: 'Password-reset email',
     emailOk: 'SMTP configured', emailNo: 'Not configured — set SMTP_* variables in the backend environment',
     secrets: 'Secrets (database, storage keys, Bakong token, SMTP password) live only in the backend environment variables and are never sent to this dashboard.',

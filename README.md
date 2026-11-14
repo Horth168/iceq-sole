@@ -311,6 +311,7 @@ All backend secrets live in `backend/.env` locally, or in your host's secret sto
 | `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS` | optional | Session lifetimes (30 min / 14 days) |
 | `REMEMBER_ME_DAYS`, `PASSWORD_RESET_EXPIRE_MINUTES` | optional | "Remember me" length (30 days) and reset-link lifetime (60 min) |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | for password reset | Outgoing email. With Gmail use `smtp.gmail.com`, port `587` and an **App Password** (Google Account → Security → 2-Step Verification → App passwords), never your normal password |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_IDS` | optional | Telegram alerts for new orders, payments and low stock, with one-tap **Received / Not received** buttons that mark KHQR / bank-transfer payments paid. Create the bot with @BotFather; send `/start` to it to get your chat ID |
 | `INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PASSWORD` | hosts without a shell | Creates the first admin at start-up if none exists; remove after first sign-in |
 | `SEED_DEMO_CATALOG` | optional | `true` loads the demo catalogue and photo update; keeps orders and customers |
 | `VITE_API_URL` (store, dashboard) | prod | API base URL baked into the frontend build |

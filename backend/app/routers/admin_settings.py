@@ -27,6 +27,7 @@ def read_settings(db: Session = Depends(get_db), _: User = Depends(require_staff
         "environment": settings.ENVIRONMENT,
         "timezone": settings.TIMEZONE,
         "email_configured": smtp_configured(),
+        "telegram_configured": bool(settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_ADMIN_CHAT_IDS.strip()),
     }}
 
 

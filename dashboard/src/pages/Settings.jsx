@@ -79,6 +79,7 @@ export default function Settings() {
                 no={s.system.bakong_account_id ? t('settings.bakongNoToken', { id: s.system.bakong_account_id }) : t('settings.bakongNone')} />
               <Status ok={!!(pay.khqr_static_image_url || s.system.bakong_account_id)} yes={t('settings.khqrOk')} no={t('settings.khqrNo')} />
               <Status ok={!!pay.bank_account_number} yes={t('settings.bankOk')} no={t('settings.bankNo')} />
+              <Status ok={!!s.system.telegram_configured} yes={t('settings.tgOk')} no={t('settings.tgNo')} />
               <Status ok={!!s.system.email_configured} yes={`${t('settings.email')}: ${t('settings.emailOk')}`} no={`${t('settings.email')}: ${t('settings.emailNo')}`} />
             </div>
           </Card>
@@ -132,6 +133,7 @@ export default function Settings() {
             <div><dt className="text-stone-450">{t('settings.environment')}</dt><dd className="font-semibold">{s.system.environment}</dd></div>
             <div><dt className="text-stone-450">{t('settings.timezone')}</dt><dd className="font-semibold">{s.system.timezone}</dd></div>
             <div><dt className="text-stone-450">{t('settings.autoVerify')}</dt><dd className="font-semibold">{s.system.bakong_auto_verify ? t('common.on') : t('common.off')}</dd></div>
+            <div><dt className="text-stone-450">{t('settings.telegram')}</dt><dd className="font-semibold">{s.system.telegram_configured ? t('common.on') : t('common.off')}</dd></div>
             <div><dt className="text-stone-450">{t('settings.email')}</dt><dd className="font-semibold">{s.system.email_configured ? t('settings.emailOk') : t('settings.emailNo')}</dd></div>
           </dl>
           <p className="mt-5 text-xs text-stone-450">{t('settings.secrets')}</p>

@@ -12,6 +12,7 @@ from app.security import get_optional_user
 from app.serializers import order_out
 from app.services import images, inventory, khqr
 from app.services import orders as svc
+from app.services import telegram as tg
 from app.services.cart_service import cart_lines, get_cart
 from app.services.pricing import build_quote
 from app.services.settings_store import available_methods
@@ -93,6 +94,7 @@ def checkout(request: Request, body: CheckoutIn, db: Session = Depends(get_db),
                           f"{order.customer_name} · ${order.total} · {body.payment_method.value.upper()}",
                           f"/orders/{order.id}")
         svc.notify_customer(db, order, f"Order {order.order_number} received", "We'll confirm it shortly.")
+        tg.new_order(db, order)
         if user and body.save_address:
             if not any(a.address_line == body.address_line and a.province == body.province for a in user.addresses):
                 db.add(Address(user_id=user.id, label="Home", full_name=body.full_name, phone=body.phone,
@@ -216,5 +218,6 @@ async def submit_payment(request: Request, number: str, t: str | None = Query(No
     svc.add_event(db, o, "payment_submitted", f"Customer submitted payment proof {p.reference}".strip())
     svc.notify_admins(db, "payment_submitted", f"Payment to verify: {o.order_number}",
                       f"${o.total} via {o.payment_method.value}", f"/orders/{o.id}")
+    tg.payment_submitted(db, o, p)
     db.commit()
     return {"order": order_out(o), "payment": svc.payment_instructions(db, o)}

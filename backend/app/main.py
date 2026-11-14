@@ -18,7 +18,7 @@ from app.config import settings
 from app.database import engine
 from app.limiter import limiter
 from app.routers import (account, admin_catalog, admin_dashboard, admin_marketing, admin_orders, admin_settings,
-                         auth, cart, catalog, orders)
+                         auth, cart, catalog, orders, telegram)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("iceq")
@@ -95,8 +95,14 @@ async def unhandled(request: Request, exc: Exception):
 
 # ------------------------------------------------------------- routes
 for r in (auth, account, catalog, cart, orders, admin_dashboard, admin_catalog, admin_orders, admin_marketing,
-          admin_settings):
+          admin_settings, telegram):
     app.include_router(r.router)
+
+
+@app.on_event("startup")
+def _telegram_webhook() -> None:
+    from app.services import telegram as tg
+    tg.register_webhook_async()  # no-op unless TELEGRAM_BOT_TOKEN is set and the API URL is https
 
 
 @app.get("/sitemap.xml", include_in_schema=False)
