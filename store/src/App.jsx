@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react'
+import ErrorBoundary from './components/ErrorBoundary'
 import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import Home from './pages/Home'
@@ -36,6 +37,7 @@ const Fallback = () => <div className="container-x py-10"><div className="skelet
 
 export default function App() {
   return (
+    <ErrorBoundary full>
     <Suspense fallback={<Fallback />}>
       <Routes>
         <Route element={<Layout />}>
@@ -70,5 +72,6 @@ export default function App() {
         </Route>
       </Routes>
     </Suspense>
+    </ErrorBoundary>
   )
 }

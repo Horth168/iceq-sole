@@ -9,6 +9,7 @@ import { applyIfSafe } from '../lib/updates'
 import { cls, usd } from '../lib/format'
 import Logo from './Logo'
 import MobileMenu from './MobileMenu'
+import ErrorBoundary from './ErrorBoundary'
 import { Drawer, Img, Price, QtyStepper, Spinner } from './ui'
 
 const NAV = [
@@ -29,11 +30,21 @@ function useTaxonomy() {
 }
 
 export default function Layout() {
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
   const [search, setSearch] = useState(false)
   const [menu, setMenu] = useState(false)
   const taxonomy = useTaxonomy()
   useEffect(() => { window.scrollTo(0, 0); setMenu(false); setSearch(false); applyIfSafe(pathname) }, [pathname])
+  // links like /about#authenticity: the page loads lazily, so wait for the section to exist, then scroll to it
+  useEffect(() => {
+    if (!hash) return
+    let tries = 0
+    const id = setInterval(() => {
+      const el = document.getElementById(decodeURIComponent(hash.slice(1)))
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); clearInterval(id) } else if (++tries > 40) clearInterval(id)
+    }, 75)
+    return () => clearInterval(id)
+  }, [pathname, hash])
   const minimal = pathname.startsWith('/checkout')
   const { t } = usePrefs()
   return (
@@ -46,7 +57,8 @@ export default function Layout() {
       {!minimal ? <Announcement /> : <div aria-hidden style={{ height: 'env(safe-area-inset-top)' }} />}
       <Header onSearch={() => setSearch(true)} onMenu={() => setMenu(true)} minimal={minimal} taxonomy={taxonomy} />
       <main id="main" key={pathname} className={cls('flex-1 animate-page-in', !minimal && 'pb-[calc(68px+env(safe-area-inset-bottom))] md:pb-0')}>
-        <Outlet />
+        {/* main is keyed by pathname, so leaving a broken page resets the boundary */}
+        <ErrorBoundary><Outlet /></ErrorBoundary>
       </main>
       {!minimal && <Footer />}
       {!minimal && <MobileTabBar onSearch={() => setSearch(true)} />}
@@ -413,7 +425,7 @@ function Footer() {
           </form>
         </div>
         <FooterCol title={t('footer.shop')} links={[['/shop', t('nav.allSneakers')], ['/new-arrivals', t('nav.newArrivals')], ['/best-sellers', t('nav.bestSellers')], ['/sale', t('nav.sale')], ['/brands', t('nav.brands')]]} />
-        <FooterCol title={t('footer.help')} links={[['/track', t('nav.trackOrder')], ['/account/orders', t('nav.myOrders')], ['/about', t('footer.deliveryReturns')], ['/about#authenticity', t('footer.authenticity')], ['/terms', t('footer.terms')]]} />
+        <FooterCol title={t('footer.help')} links={[['/track', t('nav.trackOrder')], ['/account/orders', t('nav.myOrders')], ['/about#delivery', t('footer.deliveryReturns')], ['/about#authenticity', t('footer.authenticity')], ['/terms', t('footer.terms')]]} />
         <div className="md:col-span-3">
           <p className="eyebrow !text-snow/50">{t('footer.contact')}</p>
           <address className="mt-4 space-y-1.5 text-sm not-italic text-snow/75">

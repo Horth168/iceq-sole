@@ -208,6 +208,7 @@ const en = {
       ['Contact', 'Questions? Contact us using the details in the footer.'],
     ],
   },
+  crash: { title: 'Something went wrong', text: "This page didn't load properly. Try again, or head back to the home page.", retry: 'Try again', home: 'Back to home' },
   notFound: { title: 'Lost your footing?', text: "The page you're looking for doesn't exist.", back: 'Back to home' },
   pwa: { offline: 'You appear to be offline. Check your connection and try again.' },
   meta: {

@@ -6,7 +6,7 @@ import { useStore } from '../context/Store'
 import { usePrefs } from '../context/Prefs'
 import { useMeta } from '../lib/meta'
 import { ProductGrid } from '../components/ProductCard'
-import { BrandMark, EmptyState, Reveal } from '../components/ui'
+import { BrandMark, EmptyState, Img, Reveal } from '../components/ui'
 
 export function Wishlist() {
   const { wishIds, user } = useStore()
@@ -77,7 +77,7 @@ export function About() {
         <p className="mt-6 max-w-2xl text-lg text-ink-700">{t('about.text')}</p>
       </section>
       <section className="container-x mt-14 grid gap-4 md:grid-cols-3">
-        {[[Truck, t('about.delivery'), deliveryText, ''], [RefreshCcw, t('about.exchanges'), t('about.exchangesText'), ''], [BadgeCheck, t('about.authenticity'), t('about.authenticityText'), 'authenticity']].map(([Icon, title, s, id], i) => (
+        {[[Truck, t('about.delivery'), deliveryText, 'delivery'], [RefreshCcw, t('about.exchanges'), t('about.exchangesText'), 'returns'], [BadgeCheck, t('about.authenticity'), t('about.authenticityText'), 'authenticity']].map(([Icon, title, s, id], i) => (
           <Reveal key={title} delay={i * 80} id={id || undefined} className="card scroll-mt-28 p-6">
             <span className="grid h-12 w-12 place-items-center rounded-full bg-ice-50 text-ice-600"><Icon size={22} /></span>
             <h2 className="mt-5 font-display text-2xl font-bold">{title}</h2>
