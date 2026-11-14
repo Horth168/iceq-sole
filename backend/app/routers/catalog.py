@@ -239,6 +239,7 @@ def settings_public(db: Session = Depends(get_db)):
             "turnstile_site_key": settings.TURNSTILE_SITE_KEY if human.enabled() else "",
             "google_client_id": settings.GOOGLE_CLIENT_ID,
             "telegram_login": social.telegram_enabled(),
+            "telegram_login_bot_id": social.telegram_bot_id(),
             "telegram_login_bot": social.telegram_bot_username()}
 
 

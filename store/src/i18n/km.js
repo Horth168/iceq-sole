@@ -164,6 +164,7 @@ const km = {
   payStatus: { unpaid: 'រង់ចាំការបង់ប្រាក់', submitted: 'កំពុងផ្ទៀងផ្ទាត់', paid: 'បានបង់', failed: 'មានបញ្ហាការបង់ប្រាក់', refunded: 'បានសងប្រាក់វិញ' },
   payMethod: { khqr: 'ABA KHQR', bank_transfer: 'ផ្ទេរប្រាក់តាមធនាគារ', cod: 'បង់ប្រាក់ពេលទទួលទំនិញ' },
   auth: {
+    continueGoogle: 'បន្តជាមួយ Google',
     continueAs: 'បន្តជា {name}', continueTelegram: 'បន្តជាមួយ Telegram', orEmail: 'ឬប្រើអ៊ីមែល', signingIn: 'កំពុងចូល…', socialFailed: 'ចូលមិនបានទេ សូមព្យាយាមម្តងទៀត។',
     noAccountTitle: 'មិនទាន់មានគណនីប្រើអ៊ីមែលនេះទេ', noAccountText: 'បង្កើតគណនី IceQ Sole ឥតគិតថ្លៃសម្រាប់ {email} ក្នុងរយៈពេលមិនដល់មួយនាទី។',
     signInTitle: 'ចូលគណនី', signInSub: 'ស្វាគមន៍ការត្រឡប់មកកាន់ IceQ Sole វិញ។', email: 'អ៊ីមែល', password: 'ពាក្យសម្ងាត់',

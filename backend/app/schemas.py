@@ -357,7 +357,8 @@ class UserUpdateIn(Strict):
 
 # ---- social sign-in
 class GoogleLoginIn(Strict):
-    credential: str = Field(min_length=20, max_length=4096)
+    credential: str | None = Field(None, min_length=20, max_length=4096)    # ID token (Google's own button)
+    access_token: str | None = Field(None, min_length=20, max_length=4096)  # token client (our button)
     remember: bool = True
     locale: Literal["en", "km"] | None = None
 

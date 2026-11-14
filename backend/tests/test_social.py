@@ -105,3 +105,37 @@ def test_telegram_user_adds_email_and_first_password(client, monkeypatch):
                     json={"current_password": "", "new_password": "NewPass123"})
     assert r.status_code == 200, r.text
     assert client.post("/api/auth/login", json={"email": "sokha@example.com", "password": "NewPass123"}).status_code == 200
+
+
+class _R:
+    def __init__(self, status, payload):
+        self.status_code, self._p = status, payload
+
+    def json(self):
+        return self._p
+
+
+def test_google_access_token_from_our_button(client, monkeypatch):
+    import httpx
+    monkeypatch.setattr(settings, "GOOGLE_CLIENT_ID", "client.apps.googleusercontent.com")
+
+    def fake_get(url, params=None, headers=None, timeout=None):
+        if "tokeninfo" in url:
+            aud = "client.apps.googleusercontent.com" if params["access_token"] == "good-token-000000000000" else "other-app"
+            return _R(200, {"aud": aud, "azp": aud, "sub": "g-77", "expires_in": "3500"})
+        return _R(200, {"sub": "g-77", "email": "new.buyer@example.com", "email_verified": True, "name": "New Buyer"})
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+    r = client.post("/api/auth/google", json={"access_token": "good-token-000000000000"})
+    assert r.status_code == 200, r.text
+    assert r.json()["user"]["email"] == "new.buyer@example.com" and r.json()["user"]["full_name"] == "New Buyer"
+    # a token issued to another app is refused
+    assert client.post("/api/auth/google", json={"access_token": "token-for-other-app-000"}).status_code == 401
+    assert client.post("/api/auth/google", json={}).status_code == 422
+
+
+def test_bot_id_is_published(client, monkeypatch):
+    monkeypatch.setattr(settings, "TELEGRAM_LOGIN_BOT_TOKEN", BOT)
+    monkeypatch.setattr(social, "telegram_bot_username", lambda: "IceQ_Sole_MiniApp_Bot")
+    s = client.get("/api/settings/public").json()
+    assert s["telegram_login_bot_id"] == 123456 and s["telegram_login"] is True

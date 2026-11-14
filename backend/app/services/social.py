@@ -53,6 +53,12 @@ def telegram_enabled() -> bool:
     return bool(settings.TELEGRAM_LOGIN_BOT_TOKEN)
 
 
+def telegram_bot_id() -> int | None:
+    """Numeric bot id = the part of the token before ':' (it is the bot's public user id, not a secret)."""
+    head = settings.TELEGRAM_LOGIN_BOT_TOKEN.split(':', 1)[0]
+    return int(head) if telegram_enabled() and head.isdigit() else None
+
+
 _bot_username: str | None = None
 _retry_at = 0.0
 
@@ -78,6 +84,32 @@ def telegram_bot_username() -> str:
 
 
 # ------------------------------------------------------------------ verification
+GOOGLE_TOKENINFO = "https://oauth2.googleapis.com/tokeninfo"
+GOOGLE_USERINFO = "https://openidconnect.googleapis.com/v1/userinfo"
+
+
+def verify_google_access_token(access_token: str) -> dict:
+    """Our own "Continue with Google" button uses Google's popup (token client), which returns an
+    access token. Google's tokeninfo proves it was issued to OUR client ID (so a token made for some
+    other app can't be replayed here); userinfo then gives the verified email and name."""
+    if not google_enabled():
+        raise HTTPException(404, "Google sign-in is not available")
+    try:
+        ti = httpx.get(GOOGLE_TOKENINFO, params={"access_token": access_token}, timeout=10)
+        tok = ti.json() if ti.status_code == 200 else {}
+        if settings.GOOGLE_CLIENT_ID not in (tok.get("aud"), tok.get("azp")) or int(tok.get("expires_in", 0)) <= 0:
+            raise HTTPException(401, FAILED)
+        ui = httpx.get(GOOGLE_USERINFO, headers={"Authorization": f"Bearer {access_token}"}, timeout=10)
+        info = ui.json() if ui.status_code == 200 else {}
+    except (httpx.HTTPError, ValueError) as e:
+        log.info("Google token check failed: %s", e)
+        raise HTTPException(401, FAILED) from e
+    if not info.get("sub") or info.get("sub") != tok.get("sub", info.get("sub")):
+        raise HTTPException(401, FAILED)
+    return {"sub": info["sub"], "email": info.get("email"), "email_verified": bool(info.get("email_verified")),
+            "name": info.get("name")}
+
+
 def verify_google(credential: str) -> dict:
     if not google_enabled():
         raise HTTPException(404, "Google sign-in is not available")

@@ -164,6 +164,7 @@ const en = {
   payStatus: { unpaid: 'Awaiting payment', submitted: 'Verifying payment', paid: 'Paid', failed: 'Payment issue', refunded: 'Refunded' },
   payMethod: { khqr: 'ABA KHQR', bank_transfer: 'Bank transfer', cod: 'Cash on delivery' },
   auth: {
+    continueGoogle: 'Continue with Google',
     continueAs: 'Continue as {name}', continueTelegram: 'Continue with Telegram', orEmail: 'or use email', signingIn: 'Signing you in…', socialFailed: 'Sign-in did not work, please try again.',
     noAccountTitle: 'No account with this email yet', noAccountText: 'Create a free IceQ Sole account for {email} in under a minute.',
     signInTitle: 'Sign in', signInSub: 'Welcome back to IceQ Sole.', email: 'Email', password: 'Password',

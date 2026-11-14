@@ -139,7 +139,12 @@ def _social_session(request: Request, db: Session, user: User, remember: bool):
 @router.post("/google")
 @limiter.limit("20/minute")
 def google_login(request: Request, body: GoogleLoginIn, db: Session = Depends(get_db)):
-    info = social.verify_google(body.credential)
+    if body.access_token:
+        info = social.verify_google_access_token(body.access_token)
+    elif body.credential:
+        info = social.verify_google(body.credential)
+    else:
+        raise HTTPException(422, "Missing Google sign-in data")
     user = social.user_from_google(db, info, body.locale or "en")
     return _social_session(request, db, user, body.remember)
 
