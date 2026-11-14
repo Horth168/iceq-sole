@@ -107,8 +107,7 @@ export default function Checkout() {
 
   return (
     <div className="container-x max-w-6xl pt-4 md:pt-8">
-      <Link to="/cart" className="inline-flex items-center gap-1 text-sm font-semibold text-stone-450 hover:text-ink"><ChevronLeft size={16} /> {t('checkout.backToBag')}</Link>
-      <h1 className="h-display mt-3 text-5xl sm:text-6xl">{t('checkout.title')}</h1>
+      <h1 className="h-display mt-2 text-5xl sm:text-6xl">{t('checkout.title')}</h1>
       {!user && (
         <p className="mt-3 text-sm text-stone-450">{t('checkout.guest')} <Link to="/login?next=/checkout" className="font-semibold text-ink underline">{t('checkout.signInFaster')}</Link> {t('checkout.guestRest')}</p>
       )}

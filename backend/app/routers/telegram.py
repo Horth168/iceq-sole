@@ -11,6 +11,7 @@ from app.database import get_db
 from app.models import Order, OrderStatus, PaymentStatus
 from app.services import orders as svc
 from app.services import telegram as tg
+from app.services.email import send_payment_update_later
 
 log = logging.getLogger("iceq.telegram")
 router = APIRouter(prefix="/api/telegram", tags=["Telegram"], include_in_schema=False)
@@ -88,19 +89,17 @@ def _handle_button(db: Session, cq: dict) -> None:
         return
 
     if parts[1] == "ok":
-        svc.mark_paid(db, order, source="telegram", note=f"Money received, confirmed on Telegram by {who}")
+        svc.confirm_payment(db, order, source="telegram", note=f"Money received, confirmed on Telegram by {who}")
         db.commit()
+        send_payment_update_later(order, "paid", svc.order_link(order))
         answer("Payment confirmed ✅")
-        close(f"✅ <b>Paid</b> · {order.order_number} confirmed by {who}. The customer's order page now shows it as paid.")
+        close(f"✅ <b>Paid</b> · {order.order_number} confirmed by {who} and moved to <b>Processing</b>. "
+              "The customer's page updates by itself" + (" and they get an email." if order.customer_email else "."))
     else:
-        p = svc.latest_payment(order)
-        note = "We could not find this payment yet. Please contact us with your receipt."
-        if p:
-            p.status = PaymentStatus.failed
-            p.note = note
-        order.payment_status = PaymentStatus.failed
-        svc.add_event(db, order, "payment_rejected", f"Not received (Telegram, {who})")
-        svc.notify_customer(db, order, f"Payment issue on {order.order_number}", note)
+        svc.reject_payment(db, order, note="We could not find this payment yet. Please pay again with a new QR, or send your receipt.",
+                           event_note=f"Not received (Telegram, {who})")
         db.commit()
+        send_payment_update_later(order, "failed", svc.order_link(order))
         answer("Marked as not received")
-        close(f"❌ <b>Not received</b> · {order.order_number}. The customer is asked to contact you with their receipt.")
+        close(f"❌ <b>Not received</b> · {order.order_number}. The customer's page now offers a new QR to pay again"
+              + (" and they get an email." if order.customer_email else "."))

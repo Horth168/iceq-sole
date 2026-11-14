@@ -1,8 +1,8 @@
 // Shared order details: status timeline, KHQR / bank payment, items and totals.
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { QRCodeSVG } from 'qrcode.react'
-import { Check, Copy, ExternalLink, ImagePlus, Loader2, Package, PackageCheck, ShieldCheck, Truck, XCircle } from 'lucide-react'
+import KhqrCard from './KhqrCard'
+import { AlertTriangle, Check, Copy, ExternalLink, ImagePlus, Loader2, Package, PackageCheck, RefreshCw, ShieldCheck, Truck, XCircle } from 'lucide-react'
 import { api, assetUrl, upload } from '../lib/api'
 import { useToast } from '../context/Toast'
 import { Rich, usePrefs } from '../context/Prefs'
@@ -17,8 +17,37 @@ export default function OrderView({ order: initial, payment: initialPay, token, 
   const [order, setOrder] = useState(initial)
   const [pay, setPay] = useState(initialPay)
   const toast = useToast()
+  const [justPaid, setJustPaid] = useState(false)
   useEffect(() => { setOrder(initial); setPay(initialPay) }, [initial, initialPay])
   const update = (o, p) => { setOrder(o); if (p) setPay(p); onChange?.(o) }
+
+  // Live updates: while a payment is outstanding, re-read the order every 5 s (and right away when the
+  // customer comes back to the app), so a confirmation made on Telegram shows up without refreshing.
+  const waiting = !['cancelled', 'refunded'].includes(order.status) && order.payment_method !== 'cod' && order.payment_status !== 'paid'
+  const last = useRef(order.payment_status)
+  useEffect(() => {
+    if (!waiting) return
+    let alive = true
+    const poll = async () => {
+      if (document.hidden) return
+      try {
+        const r = await api(`/api/orders/${order.order_number}`, { query: { t: token } })
+        if (!alive) return
+        const before = last.current
+        last.current = r.order.payment_status
+        if (r.order.payment_status !== before || r.order.status !== order.status) {
+          update(r.order, r.payment)
+          if (r.order.payment_status === 'paid') { setJustPaid(true); toast.success(t('order.confirmedToast')) }
+          else if (r.order.payment_status === 'failed') toast.error(t('order.failedTitle'))
+        }
+      } catch { /* offline for a moment - try again next tick */ }
+    }
+    const tm = setInterval(poll, 5000)
+    const onShow = () => { if (!document.hidden) poll() }
+    document.addEventListener('visibilitychange', onShow)
+    window.addEventListener('focus', onShow)
+    return () => { alive = false; clearInterval(tm); document.removeEventListener('visibilitychange', onShow); window.removeEventListener('focus', onShow) }
+  }, [waiting, order.order_number, order.status, token]) // eslint-disable-line react-hooks/exhaustive-deps
   const closed = ['cancelled', 'refunded'].includes(order.status)
   const canCancel = order.status === 'pending' && !['paid', 'submitted'].includes(order.payment_status)
   const cancel = async () => {
@@ -67,7 +96,13 @@ export default function OrderView({ order: initial, payment: initialPay, token, 
           </div>
         )}
         {order.payment_status === 'paid' && (
-          <div className="card flex items-center gap-4 p-5"><ShieldCheck className="text-emerald-600" /><p className="text-sm"><b>{t('order.paid')}</b> {t('order.thankYou')}</p></div>
+          <div className={cls('card relative overflow-hidden p-5 sm:p-6', justPaid && 'animate-pop-in')}>
+            <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-400/15 blur-2xl" />
+            <div className="relative flex items-center gap-4">
+              <span className={cls('grid h-14 w-14 shrink-0 place-items-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/30', justPaid && 'animate-check-in')}><Check size={28} strokeWidth={3} /></span>
+              <div><p className="font-display text-xl font-bold">{t('order.paidTitle')}</p><p className="text-sm text-stone-450">{t('order.paidText')}</p></div>
+            </div>
+          </div>
         )}
 
         <div className="card p-5 sm:p-6">
@@ -186,6 +221,17 @@ function PaymentBox({ order, pay, token, onUpdate }) {
       toast.success(t('order.verifying'))
     } catch (err) { toast.error(err.message) } finally { setProgress(null) }
   }
+  const [renewing, setRenewing] = useState(false)
+  const renew = async () => {
+    setRenewing(true)
+    try {
+      const r = await api(`/api/orders/${order.order_number}/payment/renew`, { method: 'POST', query: { t: token } })
+      onUpdate(r.order, r.payment)
+      setLeft(null)
+      toast.success(t('order.newQrReady'))
+    } catch (e) { toast.error(e.message) } finally { setRenewing(false) }
+  }
+  const failed = order.payment_status === 'failed'
   const copy = (v) => { navigator.clipboard?.writeText(v); toast.info(t('order.copied')) }
   const expired = left === 0
   const mmss = left != null ? `${Math.floor(left / 60000)}:${String(Math.floor(left / 1000) % 60).padStart(2, '0')}` : ''
@@ -197,18 +243,26 @@ function PaymentBox({ order, pay, token, onUpdate }) {
         <p className="keep-latin mt-1 font-wide text-3xl font-black tabular-nums">{usd2(pay.amount)}</p>
         <p className="text-sm text-snow/60">≈ {khr(pay.amount_khr)} · {t('order.reference', { ref: order.order_number })}</p>
       </div>
+      {failed && (
+        <div className="flex flex-wrap items-start gap-3 border-b border-ink/10 bg-rose-50 p-5 sm:p-6">
+          <AlertTriangle className="mt-0.5 shrink-0 text-signal" size={20} />
+          <div className="min-w-0 flex-1"><p className="font-semibold">{t('order.failedTitle')}</p><p className="text-sm text-stone-450">{t('order.failedText')}</p></div>
+          {isQr && <button type="button" onClick={renew} disabled={renewing} className="btn-primary !min-h-[42px] w-full sm:w-auto">{renewing ? <Spinner /> : <RefreshCw size={16} />} {t('order.newQr')}</button>}
+        </div>
+      )}
       <div className="grid gap-6 p-5 sm:p-6 md:grid-cols-[auto_1fr]">
         {isQr && (qr || pay.static_qr_url) && (
-          <div className="mx-auto w-full max-w-[260px]">
-            <div className={cls('relative overflow-hidden rounded-3xl border-[6px] border-[#E1232E] bg-snow p-4 text-night', expired && 'opacity-40')}>
-              <div className="-mx-4 -mt-4 mb-3 bg-[#E1232E] py-2 text-center text-xs font-black tracking-[0.3em] text-snow">KHQR</div>
-              <p className="text-xs font-semibold">{pay.merchant_name || 'IceQ Sole'}</p>
-              <p className="mb-3 font-bold tabular-nums">{usd2(pay.amount)}</p>
-              <div className="border-t border-dashed border-night/20 pt-3">
-                {qr ? <QRCodeSVG value={qr} size={200} level="M" className="h-auto w-full" /> : <img src={assetUrl(pay.static_qr_url)} alt={t('order.storeQr')} className="w-full" />}
-              </div>
-            </div>
-            {pay.expires_at && <p className={cls('mt-2 text-center text-xs', expired ? 'font-semibold text-signal' : 'text-stone-450')}>{expired ? t('order.expired') : left != null ? t('order.expiresIn', { time: mmss }) : ''}</p>}
+          <div className="mx-auto w-full max-w-[280px]">
+            <KhqrCard value={qr} imageUrl={!qr ? assetUrl(pay.static_qr_url) : undefined} name={pay.merchant_name} amount={pay.amount} dim={expired || failed}>
+              {(expired || failed) && qr && (
+                <div className="absolute inset-0 grid place-items-center">
+                  <button type="button" onClick={renew} disabled={renewing} className="btn-primary !min-h-[44px] shadow-lift">{renewing ? <Spinner /> : <RefreshCw size={16} />} {t('order.newQr')}</button>
+                </div>
+              )}
+            </KhqrCard>
+            <p className="mt-3 text-center text-xs text-stone-450">{t('order.qrHint')}</p>
+            {pay.expires_at && !failed && <p className={cls('mt-1 text-center text-xs', expired ? 'font-semibold text-signal' : 'text-stone-450')}>{expired ? t('order.expiredShort') : left != null ? t('order.expiresIn', { time: mmss }) : ''}</p>}
+            {!expired && !failed && <p className="mt-2 flex items-center justify-center gap-2 text-xs text-stone-450"><span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" /><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" /></span>{t('order.waiting')}</p>}
           </div>
         )}
         <div className="space-y-4 text-sm">

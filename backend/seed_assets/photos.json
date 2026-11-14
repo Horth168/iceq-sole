@@ -513,6 +513,24 @@
    "credit": "Andrey Matveev",
    "site": "Pexels",
    "file": "photos/pexels-28381500.jpg"
+  },
+  {
+   "target": "adidas-ultraboost",
+   "color": "Black",
+   "src": "https://images.pexels.com/photos/5930091/pexels-photo-5930091.jpeg",
+   "page": "https://www.pexels.com/photo/gray-and-black-adidas-shoes-5930091/",
+   "credit": "Christopher Beck",
+   "site": "Pexels",
+   "file": "photos/pexels-5930091.jpg"
+  },
+  {
+   "target": "nike-air-zoom-pegasus",
+   "color": "Black",
+   "src": "https://images.pexels.com/photos/1456705/pexels-photo-1456705.jpeg",
+   "page": "https://www.pexels.com/photo/comfortable-sneakers-for-running-1456705/",
+   "credit": "Ray Piedra",
+   "site": "Pexels",
+   "file": "photos/pexels-1456705.jpg"
   }
  ]
 }

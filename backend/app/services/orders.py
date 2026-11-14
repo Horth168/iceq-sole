@@ -148,6 +148,12 @@ def create_khqr_payment(db: Session, order: Order) -> Payment:
     return payment
 
 
+def _iso_utc(dt) -> str:
+    """Always send times with a timezone (SQLite hands back naive UTC), so browsers don't read them as local time."""
+    from datetime import timezone
+    return (dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)).isoformat()
+
+
 def payment_instructions(db: Session, order: Order) -> dict:
     cfg = get_setting(db, "payments")
     p = latest_payment(order)
@@ -164,7 +170,7 @@ def payment_instructions(db: Session, order: Order) -> dict:
     if order.payment_method == PaymentMethod.khqr:
         data.update(
             khqr=p.khqr_payload if p else None,
-            expires_at=p.expires_at.isoformat() if p and p.expires_at else None,
+            expires_at=_iso_utc(p.expires_at) if p and p.expires_at else None,
             static_qr_url=cfg.get("khqr_static_image_url") or None,
             merchant_name=cfg.get("khqr_merchant_name"),
             auto_verify=settings.bakong_enabled and bool(p and p.khqr_md5),
@@ -173,3 +179,31 @@ def payment_instructions(db: Session, order: Order) -> dict:
         data["bank"] = {"bank_name": cfg.get("bank_name"), "account_name": cfg.get("bank_account_name"),
                         "account_number": cfg.get("bank_account_number")}
     return data
+
+
+def order_link(order: Order) -> str:
+    return f"{settings.STORE_URL.rstrip('/')}/order/{order.order_number}?t={access_token(order.order_number)}"
+
+
+def confirm_payment(db: Session, order: Order, *, source: str, note: str = "", user_id: int | None = None) -> None:
+    """Money confirmed by a person (Telegram or dashboard): paid -> confirmed -> processing, customer told."""
+    mark_paid(db, order, source=source, user_id=user_id, note=note)
+    if order.status == S.confirmed:
+        change_status(db, order, S.processing, note="Payment received - preparing your order", user_id=user_id)
+
+
+def reject_payment(db: Session, order: Order, *, note: str, event_note: str, user_id: int | None = None) -> None:
+    """Payment not found: customer can pay again with a fresh QR or send a receipt."""
+    p = latest_payment(order)
+    if p:
+        p.status = PaymentStatus.failed
+        p.note = note
+    order.payment_status = PaymentStatus.failed
+    add_event(db, order, "payment_rejected", event_note, user_id)
+    notify_customer(db, order, f"Payment issue on {order.order_number}", note)
+
+
+def renew_khqr(db: Session, order: Order) -> Payment:
+    """New QR for an unpaid KHQR order (expired, or the last payment was not received)."""
+    order.payment_status = PaymentStatus.unpaid
+    return create_khqr_payment(db, order)

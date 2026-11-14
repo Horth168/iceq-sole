@@ -48,6 +48,7 @@ const en = {
   },
   tabs: { home: 'Home', shop: 'Shop', search: 'Search', wishlist: 'Wishlist', account: 'Account', signIn: 'Sign in' },
   home: {
+    waking: 'Opening the store… the first visit after a quiet period can take up to a minute.',
     heroEyebrow: 'New season', heroTitle: 'Stay cold.\nWalk loud.', heroSubtitle: 'Premium sneakers, delivered across Cambodia.',
     slide: 'Slide {n}', campaign: 'Featured campaign',
     trust: {
@@ -102,6 +103,7 @@ const en = {
     stickyAdd: 'Add to bag · {price}',
   },
   checkout: {
+    secureShort: 'Secure checkout', 
     title: 'Checkout', backToBag: 'Back to bag', guest: 'Checking out as a guest.', signInFaster: 'Sign in',
     guestRest: 'for faster checkout and order history.', contact: 'Contact', fullName: 'Full name', phone: 'Phone number',
     phoneHint: "We'll call to confirm delivery", email: 'Email (for receipt)', address: 'Delivery address', province: 'Province / city',
@@ -118,6 +120,10 @@ const en = {
       bankText: 'Transfer to our account and upload the receipt', cod: 'Cash on delivery', codText: 'Pay the courier when your pairs arrive' },
   },
   order: {
+    paidTitle: 'Payment received!', paidText: "Thank you — we've confirmed your payment and we're preparing your sneakers now.",
+    failedTitle: "We couldn't confirm your payment", failedText: 'If you already paid, send us your receipt below. Otherwise, get a new QR and pay again.',
+    newQr: 'Get a new QR', newQrReady: 'New QR ready — scan to pay', expiredShort: 'QR expired', waiting: 'Waiting for your payment — this page updates by itself.',
+    qrHint: 'Scan with ABA, ACLEDA, Wing or any Bakong app',
     notFound: 'Order not found', notFoundText: 'Check the link, or track your order with your phone number.', track: 'Track an order',
     thanks: 'Thank you, {name}!', placedCod: "Your order is placed and your pairs are reserved. We'll call you to confirm delivery.",
     placedPay: 'Your order is placed and your pairs are reserved. Complete your payment below so we can ship.',

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, ArrowUpRight, BadgeCheck, CreditCard, Quote, RefreshCcw, Truck } from 'lucide-react'
 import { api, assetUrl } from '../lib/api'
+import { peek, remember } from '../lib/cache'
 import { useStore } from '../context/Store'
 import { usePrefs } from '../context/Prefs'
 import { cls, usd } from '../lib/format'
@@ -11,14 +12,20 @@ import { Img, Reveal, SectionHeader, Stars, useTilt, BrandMark } from '../compon
 
 export default function Home() {
   const { t } = usePrefs()
-  const [d, setD] = useState(null)
+  const [d, setD] = useState(() => peek('home'))
   const [err, setErr] = useState(false)
   useMeta({ title: t('meta.home'), description: t('meta.homeDesc') })
-  useEffect(() => { api('/api/home').then(setD).catch(() => setErr(true)) }, [])
+  useEffect(() => { api('/api/home').then((r) => { setD(r); remember('home', r) }).catch(() => setErr(true)) }, [])
+  const [slow, setSlow] = useState(false)
+  useEffect(() => { if (d) return; const tm = setTimeout(() => setSlow(true), 5000); return () => clearTimeout(tm) }, [d])
   const heroes = d?.banners.filter((b) => b.placement === 'hero') || []
   const promo = d?.banners.find((b) => b.placement === 'promo')
   return (
     <div>
+      {slow && !d && !err && (
+        <div className="container-x mt-3"><p className="flex items-center gap-2.5 rounded-2xl bg-ice-50 px-4 py-3 text-sm text-ice-700">
+          <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-r-transparent" />{t('home.waking')}</p></div>
+      )}
       <Hero banners={heroes} loading={!d && !err} />
       <TrustBar />
       <Rail eyebrow={t('home.justLanded')} title={t('nav.newArrivals')} link="/new-arrivals" items={d?.new_arrivals} loading={!d} />

@@ -37,7 +37,7 @@ PHOTOS = json.loads((ASSETS / "photos.json").read_text(encoding="utf-8"))["photo
 rng = random.Random(7)
 
 # Bump when sync_catalog() learns something new; it runs once per version on existing databases.
-SYNC_KEY, SYNC_VERSION = "seed_sync", 4
+SYNC_KEY, SYNC_VERSION = "seed_sync", 5
 
 BRANDS = [
     ("Nike", "Performance and street icons from Beaverton."),
@@ -75,7 +75,7 @@ P = [
     ("Air Max 90", "Nike", "Lifestyle", "men", 135, None, "f", ["Grey", "White", "Red"],
      "Visible cushioning and layered panels from the running archive, refined for daily wear.",
      "ខ្នើយដែលមើលឃើញ និងបន្ទះជាន់គ្នាពីបណ្ណសារស្បែកជើងរត់ ត្រូវបានកែលម្អសម្រាប់ពាក់ប្រចាំថ្ងៃ។"),
-    ("Pegasus 41", "Nike", "Running", "unisex", 140, 119, "n", ["Black", "Ice Blue"],
+    ("Air Zoom Pegasus", "Nike", "Running", "unisex", 140, 119, "n", ["Black", "Ice Blue"],
      "A dependable daily trainer for easy miles and city runs.",
      "ស្បែកជើងហាត់ប្រាណប្រចាំថ្ងៃដែលអាចទុកចិត្តបាន សម្រាប់ការរត់ស្រាលៗ និងរត់ក្នុងទីក្រុង។"),
     ("Air Jordan 1 Low", "Air Jordan", "Basketball", "unisex", 125, None, "bt", ["Red", "Black"],
@@ -96,7 +96,7 @@ P = [
     ("Gazelle", "Adidas", "Retro", "women", 100, 85, "n", ["Black", "Navy", "Pink"],
      "Soft suede-look upper and a low, easy shape that pairs with everything.",
      "ផ្នែកខាងលើបែបស្វេដទន់ និងរាងទាបងាយស្រួល ដែលសមនឹងសម្លៀកបំពាក់គ្រប់បែប។"),
-    ("Ultraboost 5", "Adidas", "Running", "unisex", 190, 159, "n", ["Black", "White"],
+    ("Ultraboost", "Adidas", "Running", "unisex", 190, 159, "n", ["Black", "White"],
      "Energetic cushioning for long days on foot and comfortable runs.",
      "ខ្នើយផ្តល់ថាមពល សម្រាប់ថ្ងៃដែលឈរដើរយូរ និងការរត់ប្រកបដោយផាសុកភាព។"),
     ("Forum Low", "Adidas", "Basketball", "unisex", 110, None, "", ["Blue", "White"],
@@ -137,7 +137,9 @@ P = [
      "ស្បែកជើងរត់ប្រចាំថ្ងៃស្រាល ជាមួយផ្នែកខាងលើត្បាញដែលខ្យល់ចេញចូលបានល្អ និងបាតកណ្តាលទន់ផាសុកភាព។"),
 ]
 FLAG = {"f": "is_featured", "b": "is_best_seller", "n": "is_new_arrival", "t": "is_trending"}
-LEGACY_SLUGS = {"air-jordan-1-low": ["air-jordan-1-mid"]}  # renamed: the verified photos show the Low
+LEGACY_SLUGS = {"air-jordan-1-low": ["air-jordan-1-mid"],
+                # renamed to the model family: the verified photos do not show the exact version
+                "nike-air-zoom-pegasus": ["nike-pegasus-41"], "adidas-ultraboost": ["adidas-ultraboost-5"]}  # renamed: the verified photos show the Low
 
 REVIEWS = [
     ("Sokha P.", 5, "Fits true to size", "Ordered on Monday, delivered in Phnom Penh the next day. Packaging was perfect."),
@@ -325,6 +327,12 @@ def sync_catalog(db, force: bool = False) -> None:
                 key = f"brands/{b.slug}.svg"
                 b.logo_url, b.logo_key = get_storage().put(key, svg.read_bytes(), "image/svg+xml"), key
                 logos += 1
+
+    if 0 < done < 5:
+        for slug in ("nike-air-zoom-pegasus", "adidas-ultraboost"):
+            prod = db.query(Product).filter(Product.slug == slug).first()
+            if prod and prod.images and not prod.is_active:
+                prod.is_active = True
 
     sync_banners(db)
     if flag:

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, ChevronDown, Facebook, Heart, Home, Instagram, LayoutGrid, LogOut, Menu, Moon, Music2, Package, Search, Send, ShoppingBag, Sun, Tag, User, X } from 'lucide-react'
+import { ArrowRight, ChevronDown, ChevronLeft, Facebook, Heart, Home, Instagram, LayoutGrid, Lock, LogOut, Menu, Moon, Music2, Package, Search, Send, ShoppingBag, Sun, Tag, User, X } from 'lucide-react'
 import { useStore } from '../context/Store'
 import { usePrefs } from '../context/Prefs'
 import { api } from '../lib/api'
+import { peek, remember } from '../lib/cache'
 import { cls, usd } from '../lib/format'
 import Logo from './Logo'
 import MobileMenu from './MobileMenu'
@@ -18,10 +19,10 @@ const NAV = [
 ]
 
 function useTaxonomy() {
-  const [data, setData] = useState({ brands: [], categories: [] })
+  const [data, setData] = useState(() => peek('taxonomy') || { brands: [], categories: [] })
   useEffect(() => {
     Promise.all([api('/api/brands'), api('/api/categories')])
-      .then(([brands, categories]) => setData({ brands: brands.filter((b) => b.product_count > 0), categories })).catch(() => {})
+      .then(([brands, categories]) => { const v = { brands: brands.filter((b) => b.product_count > 0), categories }; setData(v); remember('taxonomy', v) }).catch(() => {})
   }, [])
   return data
 }
@@ -114,6 +115,17 @@ function Header({ onSearch, onMenu, minimal, taxonomy }) {
   return (
     <header style={{ top: 'env(safe-area-inset-top)' }} className={cls('sticky z-50 border-b transition-colors duration-300', scrolled || mega ? 'border-ink/10 bg-bone/85 backdrop-blur-xl' : 'border-transparent bg-bone')}
       onMouseLeave={() => setMega(false)}>
+      {minimal ? (
+        // checkout: always-visible way back to the bag, logo centred, reassurance on the right
+        <div className="container-x grid h-16 grid-cols-[1fr_auto_1fr] items-center md:h-[72px]">
+          <Link to="/cart" className="group -ml-1 inline-flex h-11 items-center gap-1.5 justify-self-start rounded-full pl-1.5 pr-4 text-sm font-semibold transition hover:bg-ink/5 active:scale-95">
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-ink text-white transition group-hover:-translate-x-0.5"><ChevronLeft size={18} /></span>
+            {t('nav.bag')}{count > 0 && <span className="text-stone-450">({count})</span>}
+          </Link>
+          <Link to="/" aria-label="IceQ Sole"><Logo /></Link>
+          <span className="inline-flex items-center gap-1.5 justify-self-end rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-700"><Lock size={13} /><span className="hidden sm:inline">{t('checkout.secureShort')}</span></span>
+        </div>
+      ) : (
       <div className="container-x flex h-16 items-center gap-2 md:h-[72px]">
         {!minimal && <button onClick={onMenu} aria-label={t('nav.openMenu')} className="-ml-2 grid h-11 w-11 place-items-center rounded-full hover:bg-ink/5 lg:hidden"><Menu size={22} /></button>}
         <Link to="/" className="group shrink-0" aria-label="IceQ Sole"><Logo /></Link>
@@ -149,6 +161,7 @@ function Header({ onSearch, onMenu, minimal, taxonomy }) {
           </button>
         </div>
       </div>
+      )}
       {mega && !minimal && <MegaMenu taxonomy={taxonomy} onClose={() => setMega(false)} />}
     </header>
   )

@@ -13,6 +13,9 @@ from app.serializers import order_out
 from app.services import images, inventory, khqr
 from app.services import orders as svc
 from app.services import telegram as tg
+from datetime import timezone
+
+from app.utils import utcnow
 from app.services.cart_service import cart_lines, get_cart
 from app.services.pricing import build_quote
 from app.services.settings_store import available_methods
@@ -190,6 +193,28 @@ def check_payment(request: Request, number: str, t: str | None = Query(None, max
         svc.notify_admins(db, "payment_mismatch", f"Payment mismatch on {o.order_number}", p.note, f"/orders/{o.id}")
         db.commit()
     return {"paid": False, "payment_status": o.payment_status.value, "error": result.get("error")}
+
+
+@router.post("/orders/{number}/payment/renew")
+@limiter.limit("12/hour")
+def renew_payment(request: Request, number: str, t: str | None = Query(None, max_length=64),
+                  db: Session = Depends(get_db), user: User | None = Depends(get_optional_user)):
+    """A new KHQR for an unpaid order: after the old one expired or was marked as not received."""
+    o = _load_order(db, number, user, t)
+    if o.payment_method != PaymentMethod.khqr:
+        raise HTTPException(400, "Only KHQR orders can get a new QR")
+    if o.payment_status == PaymentStatus.paid or o.status != OrderStatus.pending:
+        raise HTTPException(400, "This order does not need a new payment")
+    p = svc.latest_payment(o)
+    exp = p.expires_at if p else None
+    if exp is not None and exp.tzinfo is None:  # SQLite returns naive UTC datetimes
+        exp = exp.replace(tzinfo=timezone.utc)
+    fresh = p and p.status == PaymentStatus.unpaid and exp and exp > utcnow()
+    if not fresh:
+        svc.renew_khqr(db, o)
+        svc.add_event(db, o, "payment_renewed", "Customer requested a new QR")
+        db.commit()
+    return {"order": order_out(o), "payment": svc.payment_instructions(db, o)}
 
 
 @router.post("/orders/{number}/payment/submit")

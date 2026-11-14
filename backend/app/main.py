@@ -21,6 +21,9 @@ from app.routers import (account, admin_catalog, admin_dashboard, admin_marketin
                          auth, cart, catalog, orders, telegram)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+# httpx/httpcore log every request URL at INFO; Telegram's URLs contain the bot token, so keep them quiet.
+for _noisy in ("httpx", "httpcore"):
+    logging.getLogger(_noisy).setLevel(logging.WARNING)
 log = logging.getLogger("iceq")
 
 app = FastAPI(

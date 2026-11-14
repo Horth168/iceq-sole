@@ -51,6 +51,12 @@
   .reviews-track { animation: none; }
 }
 
+/* payment confirmed */
+.animate-pop-in { animation: pop-in .6s cubic-bezier(.16,1,.3,1) both; }
+.animate-check-in { animation: check-in .7s cubic-bezier(.34,1.56,.64,1) .1s both; }
+@keyframes pop-in { from { opacity: 0; transform: translate3d(0,12px,0) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes check-in { from { transform: scale(0) rotate(-30deg); } to { transform: none; } }
+
 /* side menu */
 .menu-panel-in { animation: menu-in .55s cubic-bezier(.16,1,.3,1) both; }
 .menu-panel-out { animation: menu-out .32s cubic-bezier(.7,0,.84,0) both; }

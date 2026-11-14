@@ -168,7 +168,7 @@ def test_khqr_payment_manual_verification(client, db, catalog, admin_headers):
     # admin approves => paid + auto-confirmed + stock committed
     r = client.post(f"/api/admin/orders/{oid}/payment", json={"approve": True, "note": "Matched in ABA app"}, headers=admin_headers)
     o = r.json()
-    assert o["payment_status"] == "paid" and o["status"] == "confirmed" and o["stock_committed"]
+    assert o["payment_status"] == "paid" and o["status"] == "processing" and o["stock_committed"]
     dash = client.get("/api/admin/dashboard", headers=admin_headers).json()
     assert dash["kpis"]["revenue"] == 81.5 and dash["kpis"]["total_orders"] == 1
 
@@ -253,10 +253,10 @@ def _tlv_parse(s):
 def test_khqr_aba_personal_account_layout():
     """ABA personal accounts: shared Bakong ID + account number + bank, same layout as ABA's own QR."""
     payload = khqr.build_khqr(account_id="abaakhppxxx@abaa", merchant_name="IceQ Sole", merchant_city="Phnom Penh",
-                              amount=Decimal("81.5"), bill_number="IQ-1", account_information="001553304",
+                              amount=Decimal("81.5"), bill_number="IQ-1", account_information="000000003",
                               acquiring_bank="ABA Bank")
     top = _tlv_parse(payload)
-    assert _tlv_parse(top["29"]) == {"00": "abaakhppxxx@abaa", "01": "001553304", "02": "ABA Bank"}
+    assert _tlv_parse(top["29"]) == {"00": "abaakhppxxx@abaa", "01": "000000003", "02": "ABA Bank"}
     assert top["53"] == "840" and top["54"] == "81.50" and top["01"] == "12"
     assert khqr.crc16_ccitt(payload[:-4]) == payload[-4:]
 

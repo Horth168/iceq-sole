@@ -19,6 +19,11 @@
           document.documentElement.lang = l;
         } catch (e) {}
       })();
+      // Wake the API as early as possible (free hosting sleeps when idle); harmless if it's already awake.
+      (function () {
+        var api = '%VITE_API_URL%';
+        if (/^https?:\/\//.test(api)) { try { fetch(api.replace(/\/$/, '') + '/api/health', { mode: 'no-cors', keepalive: true }); } catch (e) {} }
+      })();
       // Inside a Telegram Mini App: load Telegram's SDK (only there), open full height and stop
       // vertical swipes from closing the app, so the page scrolls like a normal app.
       (function () {

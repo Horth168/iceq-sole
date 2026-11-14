@@ -80,7 +80,7 @@ def test_received_button_marks_paid_and_confirms(client, db, catalog, sent):
     assert _press(client, f"pay:ok:{oid}").status_code == 200
     db.expire_all()
     o = db.get(Order, oid)
-    assert o.payment_status.value == "paid" and o.status.value == "confirmed" and o.stock_committed
+    assert o.payment_status.value == "paid" and o.status.value == "processing" and o.stock_committed
     assert o.payments[-1].verification_source == "telegram"
     # buttons removed + confirmation reply
     assert any(m == "editMessageReplyMarkup" for m, _ in sent)
@@ -140,3 +140,31 @@ def test_disabled_without_token(client, catalog, monkeypatch):
     monkeypatch.setattr(tg, "call", lambda method, **kw: calls.append(method))
     _order(client, catalog)
     assert calls == []
+
+
+def test_customer_can_get_new_qr_after_not_received(client, db, catalog, sent, monkeypatch):
+    mails = []
+    from app.services import email as email_svc
+    monkeypatch.setattr(email_svc, "send_payment_update", lambda o, kind, link: mails.append((kind, o.order_number, link)))
+    monkeypatch.setattr(email_svc.threading if hasattr(email_svc, "threading") else __import__("threading"), "Thread", _NowThread)
+    r = _order(client, catalog)
+    oid, num, t = r["order"]["id"], r["order"]["order_number"], r["access_token"]
+    old_qr = r["payment"]["khqr"]
+    _press(client, f"pay:no:{oid}")
+    page = client.get(f"/api/orders/{num}", params={"t": t}).json()
+    assert page["order"]["payment_status"] == "failed"
+    assert mails and mails[-1][0] == "failed" and f"/order/{num}?t=" in mails[-1][2]
+    # customer asks for a new QR -> unpaid again with a different code
+    new = client.post(f"/api/orders/{num}/payment/renew", params={"t": t})
+    assert new.status_code == 200, new.text
+    assert new.json()["order"]["payment_status"] == "unpaid" and new.json()["payment"]["khqr"] != old_qr
+    # asking again while the QR is still valid keeps the same code
+    again = client.post(f"/api/orders/{num}/payment/renew", params={"t": t}).json()
+    assert again["payment"]["khqr"] == new.json()["payment"]["khqr"]
+    # wrong token -> not found
+    assert client.post(f"/api/orders/{num}/payment/renew", params={"t": "nope"}).status_code == 404
+    # then the owner confirms -> paid + processing + "paid" email
+    _press(client, f"pay:ok:{oid}", cq_id="cq9")
+    db.expire_all()
+    o = db.get(Order, oid)
+    assert o.payment_status.value == "paid" and o.status.value == "processing" and mails[-1][0] == "paid"

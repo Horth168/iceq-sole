@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Expand, PackageX, X } from 'lucide-react'
 import { api, assetUrl } from '../lib/api'
+import { peek, remember } from '../lib/cache'
 import { recentlyViewed } from '../lib/storage'
 import { cls, date } from '../lib/format'
 import { useMeta } from '../lib/meta'
@@ -23,9 +24,10 @@ export default function Product() {
   const [recent, setRecent] = useState([])
 
   useEffect(() => {
-    setP(null); setMissing(false); setColorId(null); setRelated(null)
+    setP(peek(`product:${slug}`)); setMissing(false); setColorId(null); setRelated(null)
     api(`/api/products/${slug}`).then((d) => {
       setP(d)
+      remember(`product:${slug}`, d)
       const prev = recentlyViewed.list().filter((id) => id !== d.id)
       recentlyViewed.add(d.id)
       if (prev.length) api('/api/products', { query: { ids: prev.slice(0, 8).join(','), page_size: 8 } }).then((r) => setRecent(prev.map((id) => r.items.find((x) => x.id === id)).filter(Boolean))).catch(() => {})

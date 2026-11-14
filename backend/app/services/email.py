@@ -82,3 +82,37 @@ def send_password_reset(to: str, name: str, link: str, locale: str = "en") -> bo
 <p><a href="{link}" style="display:inline-block;background:#0A0A0B;color:#fff;padding:14px 26px;border-radius:999px;text-decoration:none;font-weight:700">{t['button']}</a></p>
 <p style="color:#8A877F;font-size:13px">{t['ignore']}</p></div>"""
     return send_email(to, t["subject"], text, html)
+
+
+# ---------------------------------------------------------------- order payment emails (English + Khmer)
+PAYMENT_MAIL = {
+    "paid": ("Payment received for {num} - IceQ Sole / បានទទួលការទូទាត់",
+             "Hi {name},\n\nWe've received your payment of {amount} for order {num}. Your sneakers are now being prepared.\n"
+             "Track your order: {link}\n\n"
+             "សួស្តី {name},\nយើងបានទទួលការទូទាត់ {amount} សម្រាប់ការបញ្ជាទិញ {num} ហើយ។ ស្បែកជើងរបស់អ្នកកំពុងត្រូវបានរៀបចំ។\n"
+             "តាមដានការបញ្ជាទិញ៖ {link}\n\nThank you / សូមអរគុណ - IceQ Sole"),
+    "failed": ("We couldn't confirm your payment for {num} - IceQ Sole / មិនទាន់ទទួលបានការទូទាត់",
+               "Hi {name},\n\nWe couldn't find a payment of {amount} for order {num} yet. Please open your order and pay "
+               "again with a new QR, or send us your receipt:\n{link}\n\n"
+               "សួស្តី {name},\nយើងមិនទាន់រកឃើញការទូទាត់ {amount} សម្រាប់ការបញ្ជាទិញ {num} នៅឡើយទេ។ "
+               "សូមបើកការបញ្ជាទិញ ហើយបង់ម្តងទៀតដោយ QR ថ្មី ឬផ្ញើបង្កាន់ដៃមកយើង៖\n{link}\n\nIceQ Sole"),
+}
+
+
+def send_payment_update(order, kind: str, link: str) -> bool:
+    """kind = paid | failed. Plain bilingual email; silently skipped when there's no address or SMTP."""
+    if not order.customer_email:
+        return False
+    subject, body = PAYMENT_MAIL[kind]
+    vals = {"num": order.order_number, "name": order.customer_name, "amount": f"${order.total:,.2f}", "link": link}
+    return send_email(order.customer_email, subject.format(**vals), body.format(**vals))
+
+
+def send_payment_update_later(order, kind: str, link: str) -> None:
+    """Send after the response, without holding the database session."""
+    import threading
+    from types import SimpleNamespace
+    snap = SimpleNamespace(order_number=order.order_number, customer_name=order.customer_name,
+                           customer_email=order.customer_email, total=order.total)
+    if snap.customer_email:
+        threading.Thread(target=send_payment_update, args=(snap, kind, link), daemon=True).start()

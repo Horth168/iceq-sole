@@ -76,9 +76,9 @@ export default function Settings() {
               <Toggle disabled={ro} checked={pay.cod_enabled} onChange={(v) => up('payments', 'cod_enabled', v)} label={t('settings.cod')} />
             </div>
             <div className="mt-5 space-y-2 rounded-2xl bg-bone-100 p-4 text-sm">
-              <Status ok={s.system.bakong_auto_verify} yes={t('settings.bakongOk', { id: s.system.bakong_account_id })}
-                no={s.system.bakong_account_id ? t('settings.bakongNoToken', { id: s.system.bakong_account_id }) : t('settings.bakongNone')} />
-              <Status ok={!!(pay.khqr_static_image_url || s.system.bakong_account_id)} yes={t('settings.khqrOk')} no={t('settings.khqrNo')} />
+              {pay.khqr_template ? <Status ok yes={t('settings.bankQrStatus')} /> : <Status ok={s.system.bakong_auto_verify} yes={t('settings.bakongOk', { id: s.system.bakong_account_id })}
+                no={s.system.bakong_account_id ? t('settings.bakongNoToken', { id: s.system.bakong_account_id }) : t('settings.bakongNone')} />}
+              <Status ok={!!(pay.khqr_template || pay.khqr_static_image_url || s.system.bakong_account_id)} yes={t('settings.khqrOk')} no={t('settings.khqrNo')} />
               <Status ok={!!pay.bank_account_number} yes={t('settings.bankOk')} no={t('settings.bankNo')} />
               <Status ok={!!s.system.telegram_configured} yes={t('settings.tgOk')} no={t('settings.tgNo')} />
               <Status ok={!!s.system.email_configured} yes={`${t('settings.email')}: ${t('settings.emailOk')}`} no={`${t('settings.email')}: ${t('settings.emailNo')}`} />

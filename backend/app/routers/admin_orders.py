@@ -14,6 +14,7 @@ from app.serializers import (address_out, f, movement_out, notification_out, ord
                              variant_out)
 from app.services import inventory
 from app.services import orders as svc
+from app.services.email import send_payment_update_later
 from app.utils import LOCAL_TZ
 
 router = APIRouter(prefix="/api/admin", tags=["Admin · orders & inventory"])
@@ -89,17 +90,12 @@ def verify_payment(order_id: int, body: PaymentVerifyIn, db: Session = Depends(g
     if o.payment_status == PaymentStatus.paid:
         raise HTTPException(400, "Payment already verified")
     if body.approve:
-        svc.mark_paid(db, o, source="admin", user_id=user.id, note=body.note or f"Verified by {user.full_name}")
+        svc.confirm_payment(db, o, source="admin", user_id=user.id, note=body.note or f"Verified by {user.full_name}")
     else:
-        p = svc.latest_payment(o)
-        if p:
-            p.status = PaymentStatus.failed
-            p.note = body.note
-        o.payment_status = PaymentStatus.failed
-        svc.add_event(db, o, "payment_rejected", body.note or "Payment could not be verified", user.id)
-        svc.notify_customer(db, o, f"Payment issue on {o.order_number}",
-                            body.note or "We could not verify your payment. Please contact us.")
+        svc.reject_payment(db, o, note=body.note or "We could not verify your payment. Please pay again or contact us.",
+                           event_note=body.note or "Payment could not be verified", user_id=user.id)
     db.commit()
+    send_payment_update_later(o, "paid" if body.approve else "failed", svc.order_link(o))
     return get_order(order_id, db, user)
 
 
