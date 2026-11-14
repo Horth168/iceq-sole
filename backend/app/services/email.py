@@ -1,6 +1,7 @@
-"""Transactional email over SMTP (e.g. Gmail with an App password).
+"""Transactional email: Brevo's HTTPS API first, SMTP as the fallback.
 
-Set SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASSWORD / SMTP_FROM. When SMTP is not
+Render's free plan blocks outgoing SMTP ports, so there BREVO_API_KEY is what actually delivers mail.
+Or set SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASSWORD / SMTP_FROM. When SMTP is not
 configured, development logs the message instead; production logs only that it was skipped
 (never the reset link, so tokens don't end up in logs).
 """
@@ -9,6 +10,8 @@ from __future__ import annotations
 import logging
 import smtplib
 import ssl
+
+import httpx
 from email.message import EmailMessage
 from email.utils import formataddr
 
@@ -21,13 +24,44 @@ def smtp_configured() -> bool:
     return bool(settings.SMTP_HOST and settings.SMTP_USER and settings.SMTP_PASSWORD)
 
 
-def send_email(to: str, subject: str, text: str, html: str | None = None) -> bool:
-    if not smtp_configured():
-        if settings.is_production:
-            log.warning("SMTP not configured - email to %s (%s) was not sent", to, subject)
-        else:
-            log.info("DEV EMAIL to %s | %s\n%s", to, subject, text)
+def brevo_configured() -> bool:
+    return bool(settings.BREVO_API_KEY and sender_address())
+
+
+def email_configured() -> bool:
+    return brevo_configured() or smtp_configured()
+
+
+def sender_address() -> str:
+    return settings.EMAIL_FROM or settings.SMTP_FROM or settings.SMTP_USER
+
+
+BREVO_URL = "https://api.brevo.com/v3/smtp/email"
+
+
+def _send_brevo(to: str, subject: str, text: str, html: str | None) -> bool:
+    body = {
+        "sender": {"name": settings.SMTP_FROM_NAME, "email": sender_address()},
+        "to": [{"email": to}],
+        "subject": subject,
+        "textContent": text,
+    }
+    if html:
+        body["htmlContent"] = html
+    try:
+        r = httpx.post(BREVO_URL, json=body, timeout=20,
+                       headers={"api-key": settings.BREVO_API_KEY, "accept": "application/json"})
+    except httpx.HTTPError as e:
+        log.error("Email to %s via Brevo failed: %s", to, e)
         return False
+    if r.status_code >= 300:
+        # Brevo's error body explains the problem (e.g. unverified sender) and never contains the key
+        log.error("Email to %s via Brevo rejected (%s): %s", to, r.status_code, r.text[:300])
+        return False
+    return True
+
+
+def _send_smtp(to: str, subject: str, text: str, html: str | None) -> bool:
     msg = EmailMessage()
     msg["Subject"] = subject
     msg["From"] = formataddr((settings.SMTP_FROM_NAME, settings.SMTP_FROM or settings.SMTP_USER))
@@ -48,8 +82,22 @@ def send_email(to: str, subject: str, text: str, html: str | None = None) -> boo
                 s.send_message(msg)
         return True
     except (smtplib.SMTPException, OSError) as e:
-        log.error("Email to %s failed: %s", to, e)
+        log.error("Email to %s via SMTP failed: %s", to, e)
         return False
+
+
+def send_email(to: str, subject: str, text: str, html: str | None = None) -> bool:
+    if not email_configured():
+        if settings.is_production:
+            log.warning("Email not configured - email to %s (%s) was not sent", to, subject)
+        else:
+            log.info("DEV EMAIL to %s | %s\n%s", to, subject, text)
+        return False
+    if brevo_configured() and _send_brevo(to, subject, text, html):
+        return True
+    if smtp_configured():
+        return _send_smtp(to, subject, text, html)
+    return False
 
 
 RESET = {

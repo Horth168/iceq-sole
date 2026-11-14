@@ -66,6 +66,11 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = ""
     SMTP_FROM_NAME: str = "IceQ Sole"
+    # Brevo sends over HTTPS, which works on hosts that block SMTP ports (Render free plan).
+    # When set it is used first; SMTP stays as the fallback. Sender = EMAIL_FROM or SMTP_FROM/SMTP_USER
+    # and must be a sender verified in Brevo.
+    BREVO_API_KEY: str = ""
+    EMAIL_FROM: str = ""
     PASSWORD_RESET_EXPIRE_MINUTES: int = 60
     REMEMBER_ME_DAYS: int = 30
 

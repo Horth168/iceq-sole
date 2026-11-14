@@ -14,7 +14,7 @@ from app.services.settings_store import DEFAULTS, all_settings, get_setting, set
 from app.services.storage import get_storage
 
 from app.services import khqr  # noqa: E402
-from app.services.email import smtp_configured  # noqa: E402
+from app.services.email import email_configured  # noqa: E402
 
 router = APIRouter(prefix="/api/admin", tags=["Admin · settings"])
 
@@ -27,7 +27,7 @@ def read_settings(db: Session = Depends(get_db), _: User = Depends(require_staff
         "bakong_account_id": settings.BAKONG_ACCOUNT_ID or None,
         "environment": settings.ENVIRONMENT,
         "timezone": settings.TIMEZONE,
-        "email_configured": smtp_configured(),
+        "email_configured": email_configured(),
         "telegram_configured": bool(settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_ADMIN_CHAT_IDS.strip()),
     }}
 
