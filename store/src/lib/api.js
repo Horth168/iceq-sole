@@ -54,7 +54,7 @@ async function refreshTokens() {
   return refreshing
 }
 
-export async function api(path, { method = 'GET', body, form, query, auth = true, retry = true, signal } = {}) {
+export async function api(path, { method = 'GET', body, form, query, auth = true, retry = true, signal, human } = {}) {
   const url = new URL(`${BASE}${path}`, window.location.origin)
   if (query) {
     Object.entries(query).forEach(([k, v]) => {
@@ -67,6 +67,7 @@ export async function api(path, { method = 'GET', body, form, query, auth = true
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   if (auth && tokens.access) headers.Authorization = `Bearer ${tokens.access}`
   if (cartToken.get()) headers['X-Cart-Token'] = cartToken.get()
+  if (human) headers['X-Human-Token'] = human // Cloudflare Turnstile token (see components/HumanCheck)
 
   let res
   try {
@@ -80,7 +81,7 @@ export async function api(path, { method = 'GET', body, form, query, auth = true
   if (res.status === 401 && auth && retry && tokens.refresh) {
     try {
       await refreshTokens()
-      return api(path, { method, body, form, query, auth, retry: false, signal })
+      return api(path, { method, body, form, query, auth, retry: false, signal, human })
     } catch {
       tokens.clear()
     }

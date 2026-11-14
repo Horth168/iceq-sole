@@ -10,6 +10,23 @@ import { useMeta } from '../lib/meta'
 import { Field, Spinner } from '../components/ui'
 import { LogoMark } from '../components/Logo'
 import { LangToggle, ThemeToggle } from '../components/Layout'
+import HumanCheck, { useHuman } from '../components/HumanCheck'
+
+const validEmail = (v) => /^\S+@\S+\.\S+$/.test(v.trim())
+
+// shown when the email has no account: one tap to the register form with the email filled in
+function NoAccount({ email, next }) {
+  const { t } = usePrefs()
+  const q = new URLSearchParams({ email: email.trim() })
+  if (next) q.set('next', next)
+  return (
+    <div className="animate-fade-in rounded-xl border border-ink/10 bg-white px-4 py-3.5 text-sm" role="alert">
+      <p className="font-semibold">{t('auth.noAccountTitle')}</p>
+      <p className="mt-1 text-stone-450">{t('auth.noAccountText', { email: email.trim() })}</p>
+      <Link to={`/register?${q}`} className="btn-primary mt-3 w-full !min-h-[44px]">{t('auth.createAccount')}</Link>
+    </div>
+  )
+}
 
 function Shell({ title, sub, children }) {
   const { t } = usePrefs()
@@ -83,24 +100,28 @@ export function Login() {
   const next = nextFrom(params)
   const [form, setForm] = useState({ email: '', password: '', remember: true })
   const [err, setErr] = useState('')
+  const [noAccount, setNoAccount] = useState(false)
   const [busy, setBusy] = useState(false)
+  const human = useHuman()
   if (user) return <Navigate to={next} replace />
   const submit = async (e) => {
     e.preventDefault()
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) { setErr(t('auth.errors.email')); return }
-    setBusy(true); setErr('')
+    if (!validEmail(form.email)) { setErr(t('auth.errors.email')); return }
+    setBusy(true); setErr(''); setNoAccount(false)
     try {
-      const u = await login(form.email, form.password, form.remember)
+      const u = await login(form.email.trim(), form.password, form.remember, await human.token())
       toast.success(t('auth.welcomeBack', { name: u.full_name.split(' ')[0] }))
       navigate(next, { replace: true })
-    } catch (e2) { setErr(e2.message) } finally { setBusy(false) }
+    } catch (e2) { if (e2.status === 404) setNoAccount(true); else setErr(e2.message) } finally { setBusy(false) }
   }
   return (
     <Shell title={t('auth.signInTitle')} sub={t('auth.signInSub')}>
       <form onSubmit={submit} noValidate className="mt-8 space-y-4">
-        <Field label={t('auth.email')}><IconInput icon={Mail} type="email" name="email" required autoComplete="email" inputMode="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
+        <Field label={t('auth.email')}><IconInput icon={Mail} type="email" name="email" required autoComplete="email" inputMode="email" value={form.email} onChange={(e) => { setForm({ ...form, email: e.target.value }); setNoAccount(false) }} /></Field>
         <Field label={t('auth.password')}><PasswordInput name="password" autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></Field>
         {err && <p className="animate-fade-in rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-signal" role="alert">{err}</p>}
+        {noAccount && <NoAccount email={form.email} next={params.get('next')} />}
+        <HumanCheck human={human} />
         <div className="flex items-center justify-between text-sm">
           <label className="flex cursor-pointer items-center gap-2.5"><input type="checkbox" checked={form.remember} onChange={(e) => setForm({ ...form, remember: e.target.checked })} className="h-5 w-5 accent-ink" />{t('auth.remember')}</label>
           <Link to="/forgot-password" className="font-semibold underline-offset-4 hover:underline">{t('auth.forgot')}</Link>
@@ -119,9 +140,10 @@ export function Register() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const next = nextFrom(params)
-  const [form, setForm] = useState({ full_name: '', email: '', phone: '', password: '', password_confirm: '', accept_terms: false })
+  const [form, setForm] = useState({ full_name: '', email: params.get('email') || '', phone: '', password: '', password_confirm: '', accept_terms: false })
   const [errors, setErrors] = useState({})
   const [busy, setBusy] = useState(false)
+  const human = useHuman()
   if (user) return <Navigate to={next} replace />
   const up = (k) => (e) => { setForm({ ...form, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }); setErrors((x) => ({ ...x, [k]: undefined })) }
   const submit = async (e) => {
@@ -137,7 +159,7 @@ export function Register() {
     if (Object.keys(errs).length) return
     setBusy(true)
     try {
-      await register({ ...form, phone: form.phone || null })
+      await register({ ...form, email: form.email.trim(), phone: form.phone || null }, await human.token())
       toast.success(t('auth.created'))
       navigate(next, { replace: true })
     } catch (e2) {
@@ -164,6 +186,7 @@ export function Register() {
           </label>
           {errors.accept_terms && <p className="mt-1.5 text-xs font-medium text-signal" role="alert">{errors.accept_terms}</p>}
         </div>
+        <HumanCheck human={human} />
         {errors.body && <p className="animate-fade-in rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-signal" role="alert">{errors.body}</p>}
         <button className="btn-primary w-full" disabled={busy}>{busy ? <Spinner className="h-4 w-4" /> : t('auth.registerBtn')}</button>
       </form>
@@ -177,12 +200,17 @@ export function ForgotPassword() {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [err, setErr] = useState('')
+  const [noAccount, setNoAccount] = useState(false)
   const [busy, setBusy] = useState(false)
+  const human = useHuman()
   const submit = async (e) => {
     e.preventDefault()
-    if (!/^\S+@\S+\.\S+$/.test(email)) { setErr(t('auth.errors.email')); return }
-    setBusy(true); setErr('')
-    try { await api('/api/auth/forgot-password', { method: 'POST', body: { email }, auth: false }); setSent(true) } catch (e2) { setErr(e2.message) } finally { setBusy(false) }
+    if (!validEmail(email)) { setErr(t('auth.errors.email')); return }
+    setBusy(true); setErr(''); setNoAccount(false)
+    try {
+      await api('/api/auth/forgot-password', { method: 'POST', body: { email: email.trim() }, auth: false, human: await human.token() })
+      setSent(true)
+    } catch (e2) { if (e2.status === 404) setNoAccount(true); else setErr(e2.message) } finally { setBusy(false) }
   }
   return (
     <Shell title={t('auth.forgotTitle')} sub={!sent ? t('auth.forgotSub') : undefined}>
@@ -195,7 +223,9 @@ export function ForgotPassword() {
         </div>
       ) : (
         <form onSubmit={submit} noValidate className="mt-8 space-y-4">
-          <Field label={t('auth.email')} error={err}><IconInput icon={Mail} type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
+          <Field label={t('auth.email')} error={err}><IconInput icon={Mail} type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => { setEmail(e.target.value); setNoAccount(false) }} /></Field>
+          {noAccount && <NoAccount email={email} />}
+          <HumanCheck human={human} />
           <button className="btn-primary w-full" disabled={busy || !email}>{busy ? <Spinner className="h-4 w-4" /> : t('auth.sendLink')}</button>
           <p className="text-center text-sm"><Link to="/login" className="font-semibold underline">{t('auth.backToSignIn')}</Link></p>
         </form>

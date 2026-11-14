@@ -157,6 +157,7 @@ const en = {
   payStatus: { unpaid: 'Awaiting payment', submitted: 'Verifying payment', paid: 'Paid', failed: 'Payment issue', refunded: 'Refunded' },
   payMethod: { khqr: 'ABA KHQR', bank_transfer: 'Bank transfer', cod: 'Cash on delivery' },
   auth: {
+    noAccountTitle: 'No account with this email yet', noAccountText: 'Create a free IceQ Sole account for {email} in under a minute.',
     signInTitle: 'Sign in', signInSub: 'Welcome back to IceQ Sole.', email: 'Email', password: 'Password',
     showPassword: 'Show password', hidePassword: 'Hide password', remember: 'Remember me', forgot: 'Forgot password?',
     signInBtn: 'Sign in', newHere: 'New to IceQ Sole?', createAccount: 'Create an account', welcomeBack: 'Welcome back, {name}',

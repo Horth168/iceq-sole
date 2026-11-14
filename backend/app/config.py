@@ -71,6 +71,11 @@ class Settings(BaseSettings):
     # and must be a sender verified in Brevo.
     BREVO_API_KEY: str = ""
     EMAIL_FROM: str = ""
+    # Cloudflare Turnstile bot check (free). Both empty = off. The site key is public (sent to the
+    # storefront through /api/settings/public); the secret key must stay on the server.
+    TURNSTILE_SITE_KEY: str = ""
+    TURNSTILE_SECRET_KEY: str = ""
+    MAX_REQUEST_MB: int = 12  # bigger request bodies are refused before they are read
     PASSWORD_RESET_EXPIRE_MINUTES: int = 60
     REMEMBER_ME_DAYS: int = 30
 

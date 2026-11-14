@@ -75,11 +75,15 @@ def test_register_requires_matching_passwords_and_terms(client):
 
 
 def test_khmer_error_messages(client):
+    # unknown email: the shop says so, so the customer can register
     r = client.post("/api/auth/login", json={"email": "nobody@example.com", "password": "x"},
                     headers={"Accept-Language": "km"})
-    assert r.status_code == 401 and r.json()["detail"] == "អ៊ីមែល ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ"
+    assert r.status_code == 404 and r.json()["detail"] == "មិនទាន់មានគណនីប្រើអ៊ីមែលនេះទេ"
     r = client.post("/api/auth/login", json={"email": "nobody@example.com", "password": "x"})
-    assert r.json()["detail"] == "Incorrect email or password"
+    assert r.status_code == 404 and r.json()["detail"] == "No account uses this email yet"
+    # dashboard login keeps the generic answer
+    r = client.post("/api/auth/admin/login", json={"email": "nobody@example.com", "password": "x"})
+    assert r.status_code == 401 and r.json()["detail"] == "Incorrect email or password"
 
 
 def test_forgot_and_reset_password(client, db, monkeypatch):
@@ -89,8 +93,9 @@ def test_forgot_and_reset_password(client, db, monkeypatch):
                         lambda to, name, link, locale: sent.update(to=to, link=link, locale=locale))
     make_user(db, "reset@iceqsole.com", Role.customer)
     old = login(client, "reset@iceqsole.com")
-    # unknown email gives the same answer (no account enumeration)
-    assert client.post("/api/auth/forgot-password", json={"email": "ghost@example.com"}).status_code == 200
+    # unknown email: told there is no account (and nothing is sent)
+    r = client.post("/api/auth/forgot-password", json={"email": "ghost@example.com"})
+    assert r.status_code == 404 and r.json()["detail"] == "No account uses this email yet"
     assert not sent
     r = client.post("/api/auth/forgot-password", json={"email": "RESET@iceqsole.com"})
     assert r.status_code == 200 and sent["to"] == "reset@iceqsole.com" and "/reset-password?token=" in sent["link"]

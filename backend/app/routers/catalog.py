@@ -7,6 +7,8 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
+from app.config import settings
+from app.services import human
 from app.database import get_db
 from app.limiter import limiter
 from app.models import (Banner, Brand, Category, Color, Gender, NewsletterSubscriber, Order, OrderItem,
@@ -178,7 +180,7 @@ def product_reviews(slug: str, db: Session = Depends(get_db)):
 @router.post("/products/{slug}/reviews", status_code=201)
 @limiter.limit("5/hour")
 def add_review(request: Request, slug: str, body: ReviewIn, db: Session = Depends(get_db),
-               user: User | None = Depends(get_optional_user)):
+               user: User | None = Depends(get_optional_user), _h: None = Depends(human.require_human)):
     p = db.query(Product).filter(Product.slug == slug, Product.is_active.is_(True)).first()
     if not p:
         raise HTTPException(404, "Product not found")
@@ -233,12 +235,13 @@ def home(db: Session = Depends(get_db)):
 
 @router.get("/settings/public")
 def settings_public(db: Session = Depends(get_db)):
-    return {**public_settings(db), "provinces": CAMBODIA_PROVINCES}
+    return {**public_settings(db), "provinces": CAMBODIA_PROVINCES,
+            "turnstile_site_key": settings.TURNSTILE_SITE_KEY if human.enabled() else ""}
 
 
 @router.post("/newsletter", status_code=201)
 @limiter.limit("5/hour")
-def newsletter(request: Request, body: NewsletterIn, db: Session = Depends(get_db)):
+def newsletter(request: Request, body: NewsletterIn, db: Session = Depends(get_db), _h: None = Depends(human.require_human)):
     try:
         db.add(NewsletterSubscriber(email=body.email.lower()))
         db.commit()

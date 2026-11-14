@@ -4,6 +4,7 @@ from sqlalchemy import func, or_, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.services.human import require_human
 from app.database import get_db
 from app.limiter import limiter
 from app.models import (Address, Discount, Order, OrderItem, OrderStatus, PaymentMethod, PaymentStatus, User)
@@ -36,7 +37,8 @@ def _checkout_response(db: Session, order: Order) -> dict:
 @router.post("/checkout", status_code=201)
 @limiter.limit("20/hour")
 def checkout(request: Request, body: CheckoutIn, db: Session = Depends(get_db),
-             user: User | None = Depends(get_optional_user), x_cart_token: str | None = Header(None)):
+             user: User | None = Depends(get_optional_user), x_cart_token: str | None = Header(None),
+             _h: None = Depends(require_human)):
     # 1) Duplicate submit protection (double-click, network retry)
     existing = _existing_by_key(db, body.idempotency_key)
     if existing:

@@ -8,6 +8,9 @@ import re
 KM: dict[str, str] = {
     # auth & account
     "Incorrect email or password": "អ៊ីមែល ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ",
+    "No account uses this email yet": "មិនទាន់មានគណនីប្រើអ៊ីមែលនេះទេ",
+    "Please complete the security check and try again": "សូមបញ្ចប់ការត្រួតពិនិត្យសុវត្ថិភាព ហើយព្យាយាមម្តងទៀត",
+    "Request is too large": "សំណើធំពេក",
     "An account with this email already exists": "មានគណនីប្រើអ៊ីមែលនេះរួចហើយ",
     "This account has been disabled": "គណនីនេះត្រូវបានបិទ",
     "This account does not have dashboard access": "គណនីនេះមិនមានសិទ្ធិចូលផ្ទាំងគ្រប់គ្រងទេ",

@@ -5,6 +5,7 @@ import { api, assetUrl } from '../lib/api'
 import { peek, remember } from '../lib/cache'
 import { useStore } from '../context/Store'
 import { usePrefs } from '../context/Prefs'
+import HumanCheck, { useHuman } from '../components/HumanCheck'
 import { cls, usd } from '../lib/format'
 import { useMeta } from '../lib/meta'
 import ProductCard, { ProductCardSkeleton } from '../components/ProductCard'
@@ -298,10 +299,11 @@ function Newsletter() {
   const { t } = usePrefs()
   const [email, setEmail] = useState('')
   const [state, setState] = useState('idle')
+  const human = useHuman()
   const submit = async (e) => {
     e.preventDefault()
     setState('busy')
-    try { await api('/api/newsletter', { method: 'POST', body: { email } }); setState('done') } catch { setState('error') }
+    try { await api('/api/newsletter', { method: 'POST', body: { email }, human: await human.token() }); setState('done') } catch { setState('error') }
   }
   return (
     <Reveal as="section" className="container-x mt-24 md:mt-32">
@@ -318,6 +320,9 @@ function Newsletter() {
             <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" aria-label={t('auth.email')} className="field flex-1 !rounded-full" />
             <button className="btn-primary" disabled={state === 'busy'}>{t('home.subscribe')}</button>
           </form>
+        )}
+        {state !== 'done' && email && (
+          <HumanCheck human={human} className="relative mx-auto mt-3 flex justify-center" />
         )}
         {state === 'error' && <p className="relative mt-3 text-sm text-signal">{t('home.somethingWrong')}</p>}
       </div>

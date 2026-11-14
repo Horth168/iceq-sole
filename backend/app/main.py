@@ -42,13 +42,17 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Cart-Token", "Accept-Language"],
+    allow_headers=["Authorization", "Content-Type", "X-Cart-Token", "Accept-Language", "X-Human-Token"],
     max_age=600,
 )
 
 
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
+    # refuse oversized bodies up front (flooding the server with huge uploads)
+    size = request.headers.get("content-length")
+    if size and size.isdigit() and int(size) > settings.MAX_REQUEST_MB * 1024 * 1024:
+        return JSONResponse({"detail": "Request is too large"}, status_code=413)
     start = time.perf_counter()
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"

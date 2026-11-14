@@ -10,6 +10,7 @@ import { saveMyOrder } from '../lib/myOrders'
 import { Field, Img, Spinner } from '../components/ui'
 import { usePrefs } from '../context/Prefs'
 import PromoCode from '../components/PromoCode'
+import HumanCheck, { useHuman } from '../components/HumanCheck'
 
 const METHODS = [
   { id: 'khqr', title: 'checkout.methods.khqr', text: 'checkout.methods.khqrText', icon: QrCode, flag: 'khqr_enabled' },
@@ -30,6 +31,7 @@ export default function Checkout() {
   const [errors, setErrors] = useState({})
   const [quote, setQuote] = useState(null)
   const [busy, setBusy] = useState(false)
+  const human = useHuman()
   const key = useRef(store.get('iq_checkout_key') || uuid())
   useEffect(() => { store.set('iq_checkout_key', key.current) }, [])
   useEffect(() => { refreshCart() }, []) // eslint-disable-line
@@ -80,7 +82,7 @@ export default function Checkout() {
     setBusy(true)
     try {
       const body = { ...form, email: form.email || null, idempotency_key: key.current, save_address: !!user && form.save_address }
-      const res = await api('/api/checkout', { method: 'POST', body })
+      const res = await api('/api/checkout', { method: 'POST', body, human: await human.token() })
       store.remove('iq_checkout_key')
       saveMyOrder(res.order, res.access_token)
       setCart({ ...cart, items: [], count: 0 })
@@ -200,6 +202,7 @@ export default function Checkout() {
                 <p className="text-right text-xs text-stone-450">≈ {khr(q.total_khr)}</p>
               </dl>
             )}
+            <HumanCheck human={human} className="mt-4" />
             <button className="btn-primary mt-6 w-full" disabled={busy || !cart}>
               {busy ? <><Spinner className="h-4 w-4" /> {t('checkout.placing')}</> : <><Lock size={16} /> {t('checkout.placeOrder')} {q && `· ${usd(q.total)}`}</>}
             </button>

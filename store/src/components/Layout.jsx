@@ -10,6 +10,7 @@ import { cls, usd } from '../lib/format'
 import Logo from './Logo'
 import MobileMenu from './MobileMenu'
 import ErrorBoundary from './ErrorBoundary'
+import HumanCheck, { useHuman } from './HumanCheck'
 import { Drawer, Img, Price, QtyStepper, Spinner } from './ui'
 
 const NAV = [
@@ -399,11 +400,12 @@ function Footer() {
   const { t } = usePrefs()
   const [email, setEmail] = useState('')
   const [done, setDone] = useState(false)
+  const human = useHuman()
   const s = settings?.store || {}
   const social = s.social || {}
   const subscribe = async (e) => {
     e.preventDefault()
-    try { await api('/api/newsletter', { method: 'POST', body: { email } }) } catch { /* ignore */ }
+    try { await api('/api/newsletter', { method: 'POST', body: { email }, human: await human.token() }) } catch { /* ignore */ }
     setDone(true)
   }
   const socials = [['facebook', Facebook], ['instagram', Instagram], ['tiktok', Music2], ['telegram', Send]].filter(([k]) => social[k])
@@ -422,6 +424,7 @@ function Footer() {
                 <button className="btn-ice !min-h-[42px] !px-5 text-sm">{t('footer.join')}</button>
               </div>
             )}
+          {email && <HumanCheck human={human} className="mt-3" />}
           </form>
         </div>
         <FooterCol title={t('footer.shop')} links={[['/shop', t('nav.allSneakers')], ['/new-arrivals', t('nav.newArrivals')], ['/best-sellers', t('nav.bestSellers')], ['/sale', t('nav.sale')], ['/brands', t('nav.brands')]]} />

@@ -73,10 +73,10 @@ export function StoreProvider({ children }) {
     return data.user
   }, [refreshCart, syncWishlist])
 
-  const login = (email, password, remember = true) =>
-    api('/api/auth/login', { method: 'POST', body: { email, password, remember } }).then((d) => afterAuth(d, remember))
-  const register = (body) =>
-    api('/api/auth/register', { method: 'POST', body: { ...body, locale: lang } }).then((d) => afterAuth(d, body.remember !== false))
+  const login = (email, password, remember = true, human) =>
+    api('/api/auth/login', { method: 'POST', body: { email, password, remember }, human }).then((d) => afterAuth(d, remember))
+  const register = (body, human) =>
+    api('/api/auth/register', { method: 'POST', body: { ...body, locale: lang }, human }).then((d) => afterAuth(d, body.remember !== false))
   const logout = async () => {
     const rt = tokens.refresh
     tokens.clear()

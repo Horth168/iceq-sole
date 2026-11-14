@@ -9,6 +9,7 @@ import { useMeta } from '../lib/meta'
 import { useStore } from '../context/Store'
 import { useToast } from '../context/Toast'
 import { usePrefs } from '../context/Prefs'
+import HumanCheck, { useHuman } from '../components/HumanCheck'
 import PurchasePanel from '../components/PurchasePanel'
 import ProductCard, { ProductCardSkeleton } from '../components/ProductCard'
 import { EmptyState, Img, PhotoPlaceholder, SectionHeader, Stars, useLockBody } from '../components/ui'
@@ -221,12 +222,13 @@ function Reviews({ slug, product }) {
   const [form, setForm] = useState({ rating: 5, title: '', body: '' })
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
+  const human = useHuman()
   useEffect(() => { api(`/api/products/${slug}/reviews`).then(setData).catch(() => {}) }, [slug])
   const submit = async (e) => {
     e.preventDefault()
     setBusy(true)
     try {
-      await api(`/api/products/${slug}/reviews`, { method: 'POST', body: form })
+      await api(`/api/products/${slug}/reviews`, { method: 'POST', body: form, human: await human.token() })
       toast.success(t('product.reviewThanks'))
       setOpen(false)
       setForm({ rating: 5, title: '', body: '' })
@@ -265,6 +267,7 @@ function Reviews({ slug, product }) {
               <input className="field" placeholder={t('product.reviewTitle')} maxLength={120} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
               <textarea className="field min-h-[110px]" placeholder={t('product.reviewBody')} maxLength={2000} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} />
               <button className="btn-primary" disabled={busy}>{t('product.submitReview')}</button>
+              <HumanCheck human={human} />
             </form>
           )}
           {data.items.length === 0 ? <p className="text-stone-450">{t('product.firstReview')}</p> : (

@@ -15,18 +15,20 @@ from app.security import hash_password, issue_tokens, revoke_refresh_token, rota
 from app.serializers import user_out
 from app.services.cart_service import merge_guest_cart
 from app.services.email import send_password_reset
+from app.services.human import require_human
 from app.utils import as_aware, utcnow
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
 # Constant-time-ish defence against user enumeration: always run a bcrypt check.
 _DUMMY_HASH = hash_password("dummy-password-123")
+NO_ACCOUNT = "No account uses this email yet"
 FORGOT_MESSAGE = "If an account exists for that email, we've sent a link to reset your password."
 
 
 @router.post("/register", status_code=201)
 @limiter.limit("10/hour")
-def register(request: Request, body: RegisterIn, db: Session = Depends(get_db)):
+def register(request: Request, body: RegisterIn, db: Session = Depends(get_db), _h: None = Depends(require_human)):
     email = body.email.lower()
     if db.query(User).filter(func.lower(User.email) == email).first():
         raise HTTPException(409, "An account with this email already exists")
@@ -42,6 +44,10 @@ def register(request: Request, body: RegisterIn, db: Session = Depends(get_db)):
 def _login(request: Request, body: LoginIn, db: Session, staff_only: bool):
     user = db.query(User).filter(func.lower(User.email) == body.email.strip().lower()).first()
     ok = verify_password(body.password, user.password_hash if user else _DUMMY_HASH)
+    if not user and not staff_only:
+        # The shop prefers telling customers to register over a vague error. Enumeration is limited by the
+        # bot check and the per-IP rate limit; the dashboard keeps the generic message.
+        raise HTTPException(404, NO_ACCOUNT)
     if not user or not ok:
         raise HTTPException(401, "Incorrect email or password")
     if not user.is_active:
@@ -56,7 +62,7 @@ def _login(request: Request, body: LoginIn, db: Session, staff_only: bool):
 
 @router.post("/login")
 @limiter.limit("10/minute")
-def login(request: Request, body: LoginIn, db: Session = Depends(get_db)):
+def login(request: Request, body: LoginIn, db: Session = Depends(get_db), _h: None = Depends(require_human)):
     return _login(request, body, db, staff_only=False)
 
 
@@ -83,8 +89,9 @@ def _hash(token: str) -> str:
 
 @router.post("/forgot-password")
 @limiter.limit("5/hour")
-def forgot_password(request: Request, body: ForgotPasswordIn, tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    """Always answers the same way, so it can't be used to discover which emails have accounts."""
+def forgot_password(request: Request, body: ForgotPasswordIn, tasks: BackgroundTasks, db: Session = Depends(get_db),
+                    _h: None = Depends(require_human)):
+    """Sends a reset link, or says the email has no account so the customer can register instead."""
     user = db.query(User).filter(func.lower(User.email) == body.email.lower(), User.is_active.is_(True)).first()
     if user:
         token = secrets.token_urlsafe(32)
@@ -98,7 +105,8 @@ def forgot_password(request: Request, body: ForgotPasswordIn, tasks: BackgroundT
         base = origin if origin and origin in settings.cors_origins else settings.STORE_URL
         link = f"{base.rstrip('/')}/reset-password?token={token}"
         tasks.add_task(send_password_reset, user.email, user.full_name, link, user.locale or "en")
-    return {"ok": True, "message": FORGOT_MESSAGE}
+        return {"ok": True, "message": FORGOT_MESSAGE}
+    raise HTTPException(404, NO_ACCOUNT)
 
 
 @router.post("/reset-password")
