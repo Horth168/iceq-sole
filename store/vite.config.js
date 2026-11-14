@@ -6,7 +6,8 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'autoUpdate', // new version activates at once; src/lib/updates.js reloads at a safe moment
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png', 'robots.txt'],
       manifest: {
         name: 'IceQ Sole — Premium Sneakers',
@@ -35,6 +36,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,woff2,webp,png}'],
         globIgnores: ['**/icons/splash-*', '**/images/**', '**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2'],
+        skipWaiting: true,
+        clientsClaim: true,
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//],
         runtimeCaching: [

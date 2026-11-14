@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { PackageSearch, PartyPopper } from 'lucide-react'
 import { api } from '../lib/api'
 import { store } from '../lib/storage'
+import { saveMyOrder } from '../lib/myOrders'
 import { useStore } from '../context/Store'
 import OrderView from '../components/OrderView'
 import { EmptyState } from '../components/ui'
@@ -17,7 +18,7 @@ export default function Order() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(false)
   useEffect(() => {
-    api(`/api/orders/${number}`, { query: { t: token } }).then(setData).catch(() => setError(true))
+    api(`/api/orders/${number}`, { query: { t: token } }).then((r) => { setData(r); if (token) saveMyOrder(r.order, token) }).catch(() => setError(true))
   }, [number, token, user?.id])
   if (error) return <EmptyState icon={PackageSearch} title={t('order.notFound')} text={t('order.notFoundText')} action={<Link to="/track" className="btn-primary">{t('order.track')}</Link>} />
   if (!data) return <div className="container-x py-10"><div className="skeleton h-96" /></div>
@@ -34,9 +35,9 @@ export default function Order() {
         </div>
       )}
       {!isNew && <h1 className="h-display mb-8 text-5xl">{t('order.status')}</h1>}
-      <OrderView order={data.order} payment={data.payment} token={token} />
-      {!user && isNew && (
-        <p className="mt-8 text-center text-sm text-stone-450">{t('order.bookmark')} <Link to="/register" className="font-semibold text-ink underline">{t('order.createAccount')}</Link> {t('order.forHistory')}</p>
+      <OrderView order={data.order} payment={data.payment} token={token} onChange={(o) => { if (token) saveMyOrder(o, token) }} />
+      {!user && (
+        <p className="mt-8 rounded-2xl bg-bone-100 p-4 text-center text-sm text-stone-450">{t('order.findAgain')} <Link to="/track" className="font-semibold text-ink underline">{t('nav.trackOrder')}</Link>. {t('order.bookmark')} <Link to="/register" className="font-semibold text-ink underline">{t('order.createAccount')}</Link> {t('order.forHistory')}</p>
       )}
     </div>
   )

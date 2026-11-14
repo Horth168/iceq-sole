@@ -5,6 +5,7 @@ import { useStore } from '../context/Store'
 import { usePrefs } from '../context/Prefs'
 import { api } from '../lib/api'
 import { peek, remember } from '../lib/cache'
+import { applyIfSafe } from '../lib/updates'
 import { cls, usd } from '../lib/format'
 import Logo from './Logo'
 import MobileMenu from './MobileMenu'
@@ -32,7 +33,7 @@ export default function Layout() {
   const [search, setSearch] = useState(false)
   const [menu, setMenu] = useState(false)
   const taxonomy = useTaxonomy()
-  useEffect(() => { window.scrollTo(0, 0); setMenu(false); setSearch(false) }, [pathname])
+  useEffect(() => { window.scrollTo(0, 0); setMenu(false); setSearch(false); applyIfSafe(pathname) }, [pathname])
   const minimal = pathname.startsWith('/checkout')
   const { t } = usePrefs()
   return (

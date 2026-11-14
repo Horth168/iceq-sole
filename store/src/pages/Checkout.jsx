@@ -6,6 +6,7 @@ import { useStore } from '../context/Store'
 import { useToast } from '../context/Toast'
 import { cls, khr, usd, uuid, validKhPhone } from '../lib/format'
 import { store } from '../lib/storage'
+import { saveMyOrder } from '../lib/myOrders'
 import { Field, Img, Spinner } from '../components/ui'
 import { usePrefs } from '../context/Prefs'
 
@@ -80,7 +81,7 @@ export default function Checkout() {
       const body = { ...form, email: form.email || null, idempotency_key: key.current, save_address: !!user && form.save_address }
       const res = await api('/api/checkout', { method: 'POST', body })
       store.remove('iq_checkout_key')
-      store.setJson(`iq_order_${res.order.order_number}`, res.access_token)
+      saveMyOrder(res.order, res.access_token)
       setCart({ ...cart, items: [], count: 0 })
       navigate(`/order/${res.order.order_number}?t=${res.access_token}&new=1`, { replace: true })
     } catch (err) {

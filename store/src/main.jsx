@@ -6,6 +6,9 @@ import { ToastProvider } from './context/Toast'
 import { StoreProvider } from './context/Store'
 import { PrefsProvider } from './context/Prefs'
 import './index.css'
+import { startUpdates } from './lib/updates'
+
+startUpdates()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

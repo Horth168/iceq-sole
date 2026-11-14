@@ -120,6 +120,7 @@ const en = {
       bankText: 'Transfer to our account and upload the receipt', cod: 'Cash on delivery', codText: 'Pay the courier when your pairs arrive' },
   },
   order: {
+    findAgain: 'No account needed: this order is saved on this phone under',
     paidTitle: 'Payment received!', paidText: "Thank you — we've confirmed your payment and we're preparing your sneakers now.",
     failedTitle: "We couldn't confirm your payment", failedText: 'If you already paid, send us your receipt below. Otherwise, get a new QR and pay again.',
     newQr: 'Get a new QR', newQrReady: 'New QR ready — scan to pay', expiredShort: 'QR expired', waiting: 'Waiting for your payment — this page updates by itself.',
@@ -145,6 +146,7 @@ const en = {
     storeQr: 'Store KHQR code',
   },
   track: {
+    mine: 'Your orders on this phone', other: 'Ordered on another phone? Find it with your order number and phone number:',
     title: 'Track your order', text: 'Enter your order number and the phone number or email you used at checkout.',
     number: 'Order number', contact: 'Phone or email', find: 'Find my order',
   },
