@@ -124,9 +124,16 @@ def sitemap():
 
 @app.get("/api/health", tags=["System"])
 def health():
+    # No database query: Render's health checks and the keep-awake ping hit this often, and
+    # Neon's free compute should be allowed to sleep when the store is idle.
+    return {"status": "ok", "service": "IceQ Sole API", "storage": settings.STORAGE_PROVIDER}
+
+
+@app.get("/api/health/db", tags=["System"])
+def health_db():
     with engine.connect() as conn:
         conn.execute(text("SELECT 1"))
-    return {"status": "ok", "service": "IceQ Sole API", "storage": settings.STORAGE_PROVIDER}
+    return {"status": "ok", "database": "reachable"}
 
 
 if settings.STORAGE_PROVIDER == "local":
