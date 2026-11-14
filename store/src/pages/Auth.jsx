@@ -11,6 +11,7 @@ import { Field, Spinner } from '../components/ui'
 import { LogoMark } from '../components/Logo'
 import { LangToggle, ThemeToggle } from '../components/Layout'
 import HumanCheck, { useHuman } from '../components/HumanCheck'
+import SocialSignIn from '../components/SocialSignIn'
 
 const validEmail = (v) => /^\S+@\S+\.\S+$/.test(v.trim())
 
@@ -116,7 +117,8 @@ export function Login() {
   }
   return (
     <Shell title={t('auth.signInTitle')} sub={t('auth.signInSub')}>
-      <form onSubmit={submit} noValidate className="mt-8 space-y-4">
+      <SocialSignIn remember={form.remember} onDone={(u) => { toast.success(t('auth.welcomeBack', { name: (u.full_name || '').split(' ')[0] })); navigate(next, { replace: true }) }} />
+      <form onSubmit={submit} noValidate className="mt-6 space-y-4">
         <Field label={t('auth.email')}><IconInput icon={Mail} type="email" name="email" required autoComplete="email" inputMode="email" value={form.email} onChange={(e) => { setForm({ ...form, email: e.target.value }); setNoAccount(false) }} /></Field>
         <Field label={t('auth.password')}><PasswordInput name="password" autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></Field>
         {err && <p className="animate-fade-in rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-signal" role="alert">{err}</p>}
@@ -168,7 +170,8 @@ export function Register() {
   }
   return (
     <Shell title={t('auth.registerTitle')} sub={t('auth.registerSub')}>
-      <form onSubmit={submit} noValidate className="mt-8 space-y-4">
+      <SocialSignIn onDone={() => { toast.success(t('auth.created')); navigate(next, { replace: true }) }} />
+      <form onSubmit={submit} noValidate className="mt-6 space-y-4">
         <Field label={t('auth.fullName')} error={errors.full_name}><IconInput icon={UserIcon} name="full_name" autoComplete="name" value={form.full_name} onChange={up('full_name')} /></Field>
         <Field label={t('auth.email')} error={errors.email}><IconInput icon={Mail} type="email" name="email" autoComplete="email" inputMode="email" value={form.email} onChange={up('email')} /></Field>
         <Field label={t('auth.phone')} error={errors.phone}><IconInput icon={Phone} type="tel" name="phone" inputMode="tel" autoComplete="tel" placeholder="012 345 678" value={form.phone} onChange={up('phone')} /></Field>

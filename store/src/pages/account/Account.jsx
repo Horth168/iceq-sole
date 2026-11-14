@@ -49,7 +49,7 @@ export function Profile() {
   const { user, setUser } = useStore()
   const { t, lang, setLang } = usePrefs()
   const toast = useToast()
-  const [form, setForm] = useState({ full_name: user.full_name, phone: user.phone || '' })
+  const [form, setForm] = useState({ full_name: user.full_name, phone: user.phone || '', email: '' })
   const [err, setErr] = useState({})
   const [busy, setBusy] = useState(false)
   const [recent, setRecent] = useState(null)
@@ -59,7 +59,7 @@ export function Profile() {
     if (form.phone && !validKhPhone(form.phone)) { setErr({ phone: t('auth.errors.phone') }); return }
     setBusy(true)
     try {
-      setUser(await api('/api/account/me', { method: 'PUT', body: { full_name: form.full_name, phone: form.phone || null, locale: lang } }))
+      setUser(await api('/api/account/me', { method: 'PUT', body: { full_name: form.full_name, phone: form.phone || null, locale: lang, ...(!user.email && form.email.trim() ? { email: form.email.trim() } : {}) } }))
       toast.success(t('account.profileUpdated')); setErr({})
     } catch (e2) { toast.error(e2.message) } finally { setBusy(false) }
   }
@@ -68,7 +68,9 @@ export function Profile() {
       <form onSubmit={save} className="card space-y-4 p-6">
         <h2 className="font-display text-xl font-bold">{t('account.profile')}</h2>
         <Field label={t('auth.fullName')}><input className="field" required minLength={2} value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></Field>
-        <Field label={t('auth.email')} hint={t('account.emailHint')}><input className="field bg-bone" value={user.email} disabled /></Field>
+        {user.email
+          ? <Field label={t('auth.email')} hint={t('account.emailHint')}><input className="field bg-bone" value={user.email} disabled /></Field>
+          : <Field label={t('auth.email')} hint={t('account.addEmailHint')}><input type="email" inputMode="email" autoComplete="email" className="field" placeholder="you@example.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>}
         <Field label={t('checkout.phone')} error={err.phone}><input className="field" type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="012 345 678" /></Field>
         <Field label={t('account.language')}>
           <select className="field" value={lang} onChange={(e) => setLang(e.target.value)}><option value="en">English</option><option value="km">ភាសាខ្មែរ</option></select>
@@ -188,8 +190,9 @@ export function Addresses() {
 
 export function ChangePassword() {
   const toast = useToast()
-  const { setUser } = useStore()
+  const { user, setUser } = useStore()
   const { t } = usePrefs()
+  const noPassword = user && !user.has_password // signed up with Google/Telegram: setting a first password
   const [form, setForm] = useState({ current_password: '', new_password: '', confirm: '' })
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
@@ -208,7 +211,9 @@ export function ChangePassword() {
   return (
     <form onSubmit={submit} className="card max-w-lg space-y-4 p-6">
       <h2 className="font-display text-xl font-bold">{t('account.changePassword')}</h2>
-      <Field label={t('account.currentPassword')}><PasswordInput autoComplete="current-password" value={form.current_password} onChange={(e) => setForm({ ...form, current_password: e.target.value })} /></Field>
+      {noPassword
+        ? <p className="rounded-xl bg-ice-50 px-4 py-3 text-sm text-ink-700">{t('account.firstPassword')}</p>
+        : <Field label={t('account.currentPassword')}><PasswordInput autoComplete="current-password" value={form.current_password} onChange={(e) => setForm({ ...form, current_password: e.target.value })} /></Field>}
       <Field label={t('account.newPassword')} hint={t('auth.passwordHint')}><PasswordInput autoComplete="new-password" value={form.new_password} onChange={(e) => setForm({ ...form, new_password: e.target.value })} /></Field>
       <Field label={t('account.confirmNew')} error={err}><PasswordInput autoComplete="new-password" value={form.confirm} onChange={(e) => setForm({ ...form, confirm: e.target.value })} /></Field>
       <button className="btn-primary" disabled={busy}>{busy ? <Spinner className="h-4 w-4" /> : t('account.updatePassword')}</button>

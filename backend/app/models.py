@@ -9,7 +9,7 @@ import enum
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import (JSON, Boolean, CheckConstraint, DateTime, Enum, ForeignKey, Index, Integer,
+from sqlalchemy import (JSON, BigInteger, Boolean, CheckConstraint, DateTime, Enum, ForeignKey, Index, Integer,
                         Numeric, String, Text, UniqueConstraint)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -104,6 +104,9 @@ class User(TimestampMixin, Base):
     token_version: Mapped[int] = mapped_column(Integer, default=0)  # bump to revoke all sessions
     locale: Mapped[str] = mapped_column(String(5), default="en", server_default="en")
     terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # social sign-in (services/social.py); empty password_hash = no password set yet
+    google_sub: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)
+    telegram_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, index=True)
 
     addresses: Mapped[list[Address]] = relationship(back_populates="user", cascade="all, delete-orphan")
     orders: Mapped[list[Order]] = relationship(back_populates="user")

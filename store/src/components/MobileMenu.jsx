@@ -10,6 +10,7 @@ import { cls } from '../lib/format'
 import Logo from './Logo'
 import { useLockBody } from './ui'
 import { LangToggle, ThemeToggle } from './Layout'
+import { inTelegramApp, TELEGRAM_APP_URL } from '../lib/telegram'
 
 const LINKS = [
   { to: '/shop', key: 'nav.shop', icon: LayoutGrid },
@@ -139,6 +140,14 @@ function MenuBody({ onClose, taxonomy }) {
 
         {/* quick tiles */}
         <p className="eyebrow menu-item mb-3 mt-7" style={d(n++)}>{t('nav.menuQuick')}</p>
+        {!inTelegramApp() && (
+          <a href={TELEGRAM_APP_URL} target="_blank" rel="noreferrer" style={{ ...d(n++), background: '#2AABEE' }}
+            className="menu-item mb-2.5 flex items-center gap-3.5 rounded-2xl p-4 text-white transition duration-300 hover:-translate-y-0.5 active:scale-[.98]">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/20"><Send size={18} /></span>
+            <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{t('tg.menuTitle')}</span><span className="block truncate text-xs text-white/80">{t('tg.menuText')}</span></span>
+            <ArrowUpRight size={18} className="shrink-0 opacity-80" />
+          </a>
+        )}
         <div className="grid grid-cols-2 gap-2.5">
           {[
             ['/track', Package, t('nav.trackOrder')],

@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.config import settings
-from app.services import human
+from app.services import human, social
 from app.database import get_db
 from app.limiter import limiter
 from app.models import (Banner, Brand, Category, Color, Gender, NewsletterSubscriber, Order, OrderItem,
@@ -236,7 +236,10 @@ def home(db: Session = Depends(get_db)):
 @router.get("/settings/public")
 def settings_public(db: Session = Depends(get_db)):
     return {**public_settings(db), "provinces": CAMBODIA_PROVINCES,
-            "turnstile_site_key": settings.TURNSTILE_SITE_KEY if human.enabled() else ""}
+            "turnstile_site_key": settings.TURNSTILE_SITE_KEY if human.enabled() else "",
+            "google_client_id": settings.GOOGLE_CLIENT_ID,
+            "telegram_login": social.telegram_enabled(),
+            "telegram_login_bot": social.telegram_bot_username()}
 
 
 @router.post("/newsletter", status_code=201)

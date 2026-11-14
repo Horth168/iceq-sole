@@ -40,6 +40,13 @@ const km = {
     onlyLeftLower: 'នៅសល់តែ {n} គូ — សូមបន្ថយចំនួន', soldOutRemove: 'លក់អស់ហើយ — សូមដកចេញ',
     colour: 'ពណ៌', size: 'ទំហំ', soldOut: 'អស់ស្តុក', added: 'បានបន្ថែម {name} · EU {size}',
   },
+  tg: {
+    eyebrow: 'IceQ Sole នៅលើ Telegram', title: 'ទិញទំនិញក្នុង Telegram ផ្ទាល់។',
+    text: 'កម្មវិធី Telegram របស់យើងមានហាងពេញលេញ មើលទំនិញ បង់ប្រាក់ និងតាមដានការបញ្ជាទិញ ដោយមិនចាំបាច់ចេញពីការជជែក។',
+    point1: 'បើកភ្លាមៗ មិនចាំបាច់ដំឡើង', point2: 'បង់ប្រាក់ដោយ ABA KHQR ក្នុងប៉ុន្មានវិនាទី', point3: 'ព័ត៌មានការបញ្ជាទិញក្នុង Telegram',
+    open: 'បើកក្នុង Telegram', scan: 'ស្កេនដោយកាមេរ៉ាទូរស័ព្ទ ដើម្បីបើកកម្មវិធី',
+    menuTitle: 'ទិញក្នុងកម្មវិធី Telegram', menuText: 'លឿនជាងលើទូរស័ព្ទ មិនចាំបាច់ដំឡើង',
+  },
   footer: {
     tagline: 'ស្បែកជើងលំដាប់ខ្ពស់ ដឹកជញ្ជូនទូទាំងកម្ពុជា។', dropAlerts: 'ទទួលដំណឹងទំនិញថ្មី និងលេខកូដពិសេសសម្រាប់សមាជិក',
     onList: 'អ្នកបានចុះឈ្មោះរួចហើយ', emailPlaceholder: 'អាសយដ្ឋានអ៊ីមែល', join: 'ចូលរួម', shop: 'ហាង', help: 'ជំនួយ',
@@ -157,6 +164,7 @@ const km = {
   payStatus: { unpaid: 'រង់ចាំការបង់ប្រាក់', submitted: 'កំពុងផ្ទៀងផ្ទាត់', paid: 'បានបង់', failed: 'មានបញ្ហាការបង់ប្រាក់', refunded: 'បានសងប្រាក់វិញ' },
   payMethod: { khqr: 'ABA KHQR', bank_transfer: 'ផ្ទេរប្រាក់តាមធនាគារ', cod: 'បង់ប្រាក់ពេលទទួលទំនិញ' },
   auth: {
+    continueAs: 'បន្តជា {name}', continueTelegram: 'បន្តជាមួយ Telegram', orEmail: 'ឬប្រើអ៊ីមែល', signingIn: 'កំពុងចូល…', socialFailed: 'ចូលមិនបានទេ សូមព្យាយាមម្តងទៀត។',
     noAccountTitle: 'មិនទាន់មានគណនីប្រើអ៊ីមែលនេះទេ', noAccountText: 'បង្កើតគណនី IceQ Sole ឥតគិតថ្លៃសម្រាប់ {email} ក្នុងរយៈពេលមិនដល់មួយនាទី។',
     signInTitle: 'ចូលគណនី', signInSub: 'ស្វាគមន៍ការត្រឡប់មកកាន់ IceQ Sole វិញ។', email: 'អ៊ីមែល', password: 'ពាក្យសម្ងាត់',
     showPassword: 'បង្ហាញពាក្យសម្ងាត់', hidePassword: 'លាក់ពាក្យសម្ងាត់', remember: 'ចងចាំខ្ញុំ', forgot: 'ភ្លេចពាក្យសម្ងាត់?',
@@ -175,6 +183,7 @@ const km = {
     invalidLink: 'តំណកំណត់ពាក្យសម្ងាត់នេះមិនត្រឹមត្រូវ ឬផុតកំណត់ហើយ។', requestNew: 'ស្នើសុំតំណថ្មី', signedOut: 'អ្នកបានចាកចេញហើយ',
   },
   account: {
+    addEmailHint: 'បន្ថែមអ៊ីមែល ដើម្បីទទួលបង្កាន់ដៃ និងកំណត់ពាក្យសម្ងាត់ឡើងវិញ។', firstPassword: 'អ្នកបានចុះឈ្មោះតាម Google ឬ Telegram។ កំណត់ពាក្យសម្ងាត់ ដើម្បីចូលដោយអ៊ីមែលផងដែរ។',
     eyebrow: 'គណនីរបស់ខ្ញុំ', hi: 'សួស្តី {name}', profile: 'ប្រវត្តិរូប', orders: 'ការបញ្ជាទិញ', addresses: 'អាសយដ្ឋាន', password: 'ពាក្យសម្ងាត់',
     signOut: 'ចាកចេញ', profileUpdated: 'បានធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូប', emailHint: 'ទាក់ទងមកយើងដើម្បីប្តូរអ៊ីមែល', recentOrders: 'ការបញ្ជាទិញថ្មីៗ',
     allOrders: 'ការបញ្ជាទិញទាំងអស់', noOrders: 'មិនទាន់មានការបញ្ជាទិញ។', noOrdersTitle: 'មិនទាន់មានការបញ្ជាទិញ', noOrdersText: 'ពេលអ្នកបញ្ជាទិញ វានឹងបង្ហាញនៅទីនេះ។',

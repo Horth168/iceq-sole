@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.services.human import require_human
+from app.services import social
 from app.database import get_db
 from app.limiter import limiter
 from app.models import (Address, Discount, Order, OrderItem, OrderStatus, PaymentMethod, PaymentStatus, User)
@@ -62,7 +63,7 @@ def checkout(request: Request, body: CheckoutIn, db: Session = Depends(get_db),
     order = Order(
         order_number=new_order_number(), idempotency_key=body.idempotency_key, user_id=user.id if user else None,
         status=OrderStatus.pending, payment_method=body.payment_method, payment_status=PaymentStatus.unpaid,
-        customer_name=body.full_name, customer_phone=body.phone, customer_email=(body.email or (user.email if user else None)),
+        customer_name=body.full_name, customer_phone=body.phone, customer_email=(body.email or social.real_email(user)),
         province=body.province, district=body.district, address_line=body.address_line, delivery_note=body.delivery_note,
         subtotal=quote.subtotal, discount_code=quote.discount_code, discount_amount=quote.discount_amount,
         delivery_fee=quote.delivery_fee, tax_amount=quote.tax_amount, total=quote.total, khr_rate=quote.khr_rate,

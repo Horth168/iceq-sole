@@ -10,7 +10,9 @@ from app.config import settings
 from app.database import get_db
 from app.limiter import limiter
 from app.models import PasswordResetToken, RefreshToken, Role, User
-from app.schemas import ForgotPasswordIn, LoginIn, RefreshIn, RegisterIn, ResetPasswordIn
+from app.schemas import (ForgotPasswordIn, GoogleLoginIn, LoginIn, RefreshIn, RegisterIn, ResetPasswordIn,
+                         TelegramAppLoginIn, TelegramLoginIn)
+from app.services import social
 from app.security import hash_password, issue_tokens, revoke_refresh_token, rotate_refresh_token, verify_password
 from app.serializers import user_out
 from app.services.cart_service import merge_guest_cart
@@ -124,3 +126,36 @@ def reset_password(request: Request, body: ResetPasswordIn, db: Session = Depend
     db.query(RefreshToken).filter(RefreshToken.user_id == user.id).update({"revoked": True})
     db.commit()
     return {"ok": True, "message": "Your password has been reset. You can sign in now."}
+
+
+# ---------------------------------------------------------------- social sign-in
+# No Turnstile here: Google / Telegram signatures can't be forged, which already proves a real login.
+def _social_session(request: Request, db: Session, user: User, remember: bool):
+    merge_guest_cart(db, user, request.headers.get("X-Cart-Token"))
+    tokens = issue_tokens(db, user, remember=remember)
+    return {**tokens, "user": user_out(user)}
+
+
+@router.post("/google")
+@limiter.limit("20/minute")
+def google_login(request: Request, body: GoogleLoginIn, db: Session = Depends(get_db)):
+    info = social.verify_google(body.credential)
+    user = social.user_from_google(db, info, body.locale or "en")
+    return _social_session(request, db, user, body.remember)
+
+
+@router.post("/telegram")
+@limiter.limit("20/minute")
+def telegram_login(request: Request, body: TelegramLoginIn, db: Session = Depends(get_db)):
+    data = body.model_dump(exclude={"remember", "locale"}, exclude_none=True)
+    tg = social.verify_telegram_widget(data)
+    user = social.user_from_telegram(db, tg, body.locale or "en")
+    return _social_session(request, db, user, body.remember)
+
+
+@router.post("/telegram-app")
+@limiter.limit("20/minute")
+def telegram_app_login(request: Request, body: TelegramAppLoginIn, db: Session = Depends(get_db)):
+    tg = social.verify_telegram_webapp(body.init_data)
+    user = social.user_from_telegram(db, tg, body.locale or "en")
+    return _social_session(request, db, user, body.remember)

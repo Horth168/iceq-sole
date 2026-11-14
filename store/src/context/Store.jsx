@@ -77,6 +77,9 @@ export function StoreProvider({ children }) {
     api('/api/auth/login', { method: 'POST', body: { email, password, remember }, human }).then((d) => afterAuth(d, remember))
   const register = (body, human) =>
     api('/api/auth/register', { method: 'POST', body: { ...body, locale: lang }, human }).then((d) => afterAuth(d, body.remember !== false))
+  // provider: 'google' | 'telegram' | 'telegram-app' (see components/SocialSignIn)
+  const socialLogin = (provider, body, remember = true) =>
+    api(`/api/auth/${provider}`, { method: 'POST', body: { ...body, remember, locale: lang } }).then((d) => afterAuth(d, remember))
   const logout = async () => {
     const rt = tokens.refresh
     tokens.clear()
@@ -131,7 +134,7 @@ export function StoreProvider({ children }) {
   }
 
   const value = useMemo(() => ({
-    settings, user, setUser, authReady, login, register, logout, loadUser,
+    settings, user, setUser, authReady, login, register, socialLogin, logout, loadUser,
     cart, cartOpen, setCartOpen, refreshCart, addToCart, updateQty, changeVariant, removeItem, applyDiscount,
     removeDiscount, setCart: applyCart,
     wishIds, toggleWish, isWished: (id) => wishIds.includes(id),

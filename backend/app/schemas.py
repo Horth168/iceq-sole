@@ -87,6 +87,7 @@ class RefreshIn(Strict):
 
 class ProfileIn(Strict):
     full_name: str = Field(min_length=2, max_length=120)
+    email: EmailStr | None = None  # only used to add an email to a Telegram-only account
     phone: str | None = None
     locale: Literal["en", "km"] | None = None
     _p = field_validator("phone")(lambda cls, v: _phone(v))
@@ -352,3 +353,28 @@ class StaffIn(Strict):
 class UserUpdateIn(Strict):
     is_active: bool | None = None
     role: Role | None = None
+
+
+# ---- social sign-in
+class GoogleLoginIn(Strict):
+    credential: str = Field(min_length=20, max_length=4096)
+    remember: bool = True
+    locale: Literal["en", "km"] | None = None
+
+
+class TelegramLoginIn(Strict):
+    id: int
+    auth_date: int
+    hash: str = Field(min_length=64, max_length=64)
+    first_name: str | None = Field(None, max_length=256)
+    last_name: str | None = Field(None, max_length=256)
+    username: str | None = Field(None, max_length=64)
+    photo_url: str | None = Field(None, max_length=1024)
+    remember: bool = True
+    locale: Literal["en", "km"] | None = None
+
+
+class TelegramAppLoginIn(Strict):
+    init_data: str = Field(min_length=20, max_length=8192)
+    remember: bool = True
+    locale: Literal["en", "km"] | None = None

@@ -6,6 +6,7 @@ import { peek, remember } from '../lib/cache'
 import { useStore } from '../context/Store'
 import { usePrefs } from '../context/Prefs'
 import HumanCheck, { useHuman } from '../components/HumanCheck'
+import { TelegramAppSection } from '../components/TelegramApp'
 import { cls, usd } from '../lib/format'
 import { useMeta } from '../lib/meta'
 import ProductCard, { ProductCardSkeleton } from '../components/ProductCard'
@@ -35,6 +36,7 @@ export default function Home() {
       {promo && <Promo banner={promo} />}
       <Featured items={d?.featured} />
       <Brands brands={d?.brands} />
+      <TelegramAppSection />
       <Rail eyebrow={t('home.talking')} title={t('home.trending')} link="/shop?sort=best_selling" items={d?.trending} loading={!d} />
       <Story />
       {d?.testimonials?.length > 0 && <Testimonials items={d.testimonials} />}

@@ -2,6 +2,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from sqlalchemy import func
+from app.services.social import is_placeholder_email
 from app.database import get_db
 from app.models import Address, Notification, Order, Product, RefreshToken, User, WishlistItem
 from app.schemas import AddressIn, PasswordChangeIn, ProfileIn
@@ -20,6 +22,11 @@ def me(user: User = Depends(get_current_user)):
 def update_profile(body: ProfileIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     user.full_name = body.full_name
     user.phone = body.phone
+    if body.email and is_placeholder_email(user.email):
+        email = body.email.lower()
+        if db.query(User).filter(func.lower(User.email) == email, User.id != user.id).first():
+            raise HTTPException(409, "An account with this email already exists")
+        user.email = email
     if body.locale:
         user.locale = body.locale
     db.commit()
@@ -28,7 +35,8 @@ def update_profile(body: ProfileIn, user: User = Depends(get_current_user), db: 
 
 @router.post("/password")
 def change_password(body: PasswordChangeIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    if not verify_password(body.current_password, user.password_hash):
+    # accounts made with Google/Telegram have no password yet: they can set one without a current one
+    if user.password_hash and not verify_password(body.current_password, user.password_hash):
         raise HTTPException(400, "Current password is incorrect")
     user.password_hash = hash_password(body.new_password)
     user.token_version += 1  # sign out every other device

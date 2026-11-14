@@ -40,6 +40,13 @@ const en = {
     onlyLeftLower: 'Only {n} left — please lower the quantity', soldOutRemove: 'Sold out — please remove',
     colour: 'Colour', size: 'Size', soldOut: 'sold out', added: 'Added {name} · EU {size}',
   },
+  tg: {
+    eyebrow: 'IceQ Sole on Telegram', title: 'Shop right inside Telegram.',
+    text: 'Our Telegram app has the full store, so you can browse, pay and track orders without leaving your chats.',
+    point1: 'Opens instantly, nothing to install', point2: 'Pay with ABA KHQR in seconds', point3: 'Order updates right in Telegram',
+    open: 'Open in Telegram', scan: 'Scan with your phone camera to open the app',
+    menuTitle: 'Shop in our Telegram app', menuText: 'Faster on your phone, no install needed',
+  },
   footer: {
     tagline: 'Premium sneakers, delivered across Cambodia.', dropAlerts: 'Get drop alerts & members-only codes',
     onList: "You're on the list.", emailPlaceholder: 'Email address', join: 'Join', shop: 'Shop', help: 'Help',
@@ -157,6 +164,7 @@ const en = {
   payStatus: { unpaid: 'Awaiting payment', submitted: 'Verifying payment', paid: 'Paid', failed: 'Payment issue', refunded: 'Refunded' },
   payMethod: { khqr: 'ABA KHQR', bank_transfer: 'Bank transfer', cod: 'Cash on delivery' },
   auth: {
+    continueAs: 'Continue as {name}', continueTelegram: 'Continue with Telegram', orEmail: 'or use email', signingIn: 'Signing you in…', socialFailed: 'Sign-in did not work, please try again.',
     noAccountTitle: 'No account with this email yet', noAccountText: 'Create a free IceQ Sole account for {email} in under a minute.',
     signInTitle: 'Sign in', signInSub: 'Welcome back to IceQ Sole.', email: 'Email', password: 'Password',
     showPassword: 'Show password', hidePassword: 'Hide password', remember: 'Remember me', forgot: 'Forgot password?',
@@ -175,6 +183,7 @@ const en = {
     invalidLink: 'This reset link is invalid or has expired.', requestNew: 'Request a new link', signedOut: 'You are signed out',
   },
   account: {
+    addEmailHint: 'Add an email to get receipts and to reset your password.', firstPassword: 'You signed up with Google or Telegram. Set a password to also sign in with your email.',
     eyebrow: 'My account', hi: 'Hi, {name}', profile: 'Profile', orders: 'Orders', addresses: 'Addresses', password: 'Password',
     signOut: 'Sign out', profileUpdated: 'Profile updated', emailHint: 'Contact us to change your email', recentOrders: 'Recent orders',
     allOrders: 'All orders', noOrders: 'No orders yet.', noOrdersTitle: 'No orders yet', noOrdersText: 'When you place an order it will show up here.',

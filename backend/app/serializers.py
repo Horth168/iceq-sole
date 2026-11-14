@@ -18,7 +18,10 @@ def dt(v):
 
 
 def user_out(u: User) -> dict:
-    return {"id": u.id, "email": u.email, "full_name": u.full_name, "phone": u.phone, "role": u.role.value,
+    from app.services.social import is_placeholder_email
+    return {"id": u.id, "email": None if is_placeholder_email(u.email) else u.email,
+            "full_name": u.full_name, "phone": u.phone, "role": u.role.value,
+            "has_password": bool(u.password_hash), "google": bool(u.google_sub), "telegram": bool(u.telegram_id),
             "locale": u.locale or "en",
             "is_active": u.is_active, "created_at": dt(u.created_at), "last_login_at": dt(u.last_login_at)}
 

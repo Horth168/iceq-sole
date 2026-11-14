@@ -75,6 +75,10 @@ class Settings(BaseSettings):
     # storefront through /api/settings/public); the secret key must stay on the server.
     TURNSTILE_SITE_KEY: str = ""
     TURNSTILE_SECRET_KEY: str = ""
+    # Social sign-in (free). GOOGLE_CLIENT_ID is public (it is sent to the storefront).
+    # TELEGRAM_LOGIN_BOT_TOKEN = the customer Mini App bot (not the admin-alerts bot); keep it secret.
+    GOOGLE_CLIENT_ID: str = ""
+    TELEGRAM_LOGIN_BOT_TOKEN: str = ""
     MAX_REQUEST_MB: int = 12  # bigger request bodies are refused before they are read
     PASSWORD_RESET_EXPIRE_MINUTES: int = 60
     REMEMBER_ME_DAYS: int = 30

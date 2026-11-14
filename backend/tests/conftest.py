@@ -15,6 +15,10 @@ os.environ.update({
     "ENVIRONMENT": "test",
     "BAKONG_ACCOUNT_ID": "iceq_test@abaa",
     "BAKONG_API_TOKEN": "",
+    # outside services are off unless a test turns them on (ignores a developer's local .env)
+    "TURNSTILE_SITE_KEY": "", "TURNSTILE_SECRET_KEY": "",
+    "GOOGLE_CLIENT_ID": "", "TELEGRAM_LOGIN_BOT_TOKEN": "",
+    "BREVO_API_KEY": "",
 })
 
 from fastapi.testclient import TestClient  # noqa: E402

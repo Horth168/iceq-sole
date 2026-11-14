@@ -11,6 +11,7 @@ import Logo from './Logo'
 import MobileMenu from './MobileMenu'
 import ErrorBoundary from './ErrorBoundary'
 import HumanCheck, { useHuman } from './HumanCheck'
+import { TelegramAppButton } from './TelegramApp'
 import { Drawer, Img, Price, QtyStepper, Spinner } from './ui'
 
 const NAV = [
@@ -444,6 +445,7 @@ function Footer() {
               ))}
             </div>
           )}
+          <TelegramAppButton compact className="mt-5" />
         </div>
       </div>
       <div className="border-t border-snow/10">
