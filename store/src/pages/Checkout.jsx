@@ -9,6 +9,7 @@ import { store } from '../lib/storage'
 import { saveMyOrder } from '../lib/myOrders'
 import { Field, Img, Spinner } from '../components/ui'
 import { usePrefs } from '../context/Prefs'
+import PromoCode from '../components/PromoCode'
 
 const METHODS = [
   { id: 'khqr', title: 'checkout.methods.khqr', text: 'checkout.methods.khqrText', icon: QrCode, flag: 'khqr_enabled' },
@@ -188,6 +189,7 @@ export default function Checkout() {
                 </li>
               ))}
             </ul>
+            <PromoCode className="mt-5 border-t border-ink/10 pt-5" />
             {q && (
               <dl className="mt-5 space-y-2 border-t border-ink/10 pt-4 text-sm">
                 <div className="flex justify-between"><dt>{t('common.subtotal')}</dt><dd className="tabular-nums">{usd(q.subtotal)}</dd></div>

@@ -34,7 +34,7 @@ const en = {
     emptyLong: "Once you add a pair, it'll appear here — saved across visits.", startShopping: 'Start shopping',
     onlyAvailable: 'Only {n} available', deliveryAtCheckout: 'Delivery calculated at checkout.', viewBag: 'View bag',
     checkout: 'Checkout', heading: 'Your bag', freeProgress: 'Add {amount} more for free delivery',
-    freeUnlocked: "🎉 You've unlocked free delivery", summary: 'Order summary', codePlaceholder: 'Discount code',
+    freeUnlocked: "You've unlocked free delivery", summary: 'Order summary', codePlaceholder: 'Discount code',
     codeApplied: 'Discount applied', removeCode: 'Remove code', from: 'from {amount}', estimated: 'Estimated total',
     fixIssues: 'Adjust items that exceed available stock to continue.', secure: 'Secure checkout · KHQR · Bank transfer · COD',
     onlyLeftLower: 'Only {n} left — please lower the quantity', soldOutRemove: 'Sold out — please remove',
@@ -42,7 +42,7 @@ const en = {
   },
   footer: {
     tagline: 'Premium sneakers, delivered across Cambodia.', dropAlerts: 'Get drop alerts & members-only codes',
-    onList: "You're on the list. ❄", emailPlaceholder: 'Email address', join: 'Join', shop: 'Shop', help: 'Help',
+    onList: "You're on the list.", emailPlaceholder: 'Email address', join: 'Join', shop: 'Shop', help: 'Help',
     contact: 'Visit / contact', rights: '© {year} {name}. All rights reserved. Brand names belong to their respective owners.',
     deliveryReturns: 'Delivery & returns', authenticity: 'Authenticity', terms: 'Terms & privacy',
   },
@@ -62,9 +62,9 @@ const en = {
     storyText: 'IceQ Sole is a Phnom Penh sneaker boutique for people who care about the details. We curate icons and new drops from the brands you love, inspect every pair before it ships, and deliver right to your door.',
     provinces: 'provinces we deliver to — from Phnom Penh to Ratanakiri.', statBrands: 'Brands', statPay: 'Ways to pay',
     statExchange: 'Exchanges', ourStory: 'Our story', realCustomers: 'Real customers', whatPeopleSay: 'What people say',
-    verified: '✓ Verified', insiders: 'IceQ insiders', firstOnDrop: 'First on every drop.',
+    verified: 'Verified', insiders: 'IceQ insiders', firstOnDrop: 'First on every drop.',
     newsletterText: 'Restock alerts, early access and members-only codes. No spam — unsubscribe anytime.',
-    subscribe: 'Subscribe', youreIn: "You're in. Welcome to IceQ Sole ❄", somethingWrong: 'Something went wrong, please try again.',
+    subscribe: 'Subscribe', youreIn: "You're in. Welcome to IceQ Sole", somethingWrong: 'Something went wrong, please try again.',
     storyAlt: 'Sneakers on a Phnom Penh street at dusk',
   },
   card: {
@@ -99,7 +99,7 @@ const en = {
     reviews: 'Reviews', noReviews: 'No reviews yet', basedOn: 'Based on {n} reviews', basedOne: 'Based on 1 review',
     writeReview: 'Write a review', signInReview: 'Sign in to review', rating: 'Rating', stars: '{n} stars',
     reviewTitle: 'Title', reviewBody: 'How do they fit and feel?', submitReview: 'Submit review', firstReview: 'Be the first to review this pair.',
-    verifiedPurchase: ' · ✓ Verified purchase', reviewThanks: 'Thanks! Your review will appear after moderation.',
+    verifiedPurchase: ' · Verified purchase', reviewThanks: 'Thanks! Your review will appear after moderation.',
     stickyAdd: 'Add to bag · {price}',
   },
   checkout: {

@@ -277,7 +277,7 @@ function Testimonials({ items }) {
       <Stars value={r.rating} className="mt-4" />
       <blockquote className="mt-3 flex-1 text-[15px] leading-relaxed"><p className="font-semibold">{r.title}</p><p className="mt-1 text-ink-700">{r.body}</p></blockquote>
       <figcaption className="mt-5 flex items-center justify-between border-t border-ink/10 pt-4 text-sm">
-        <span className="font-semibold">{r.author_name}{r.verified_purchase && <span className="ml-2 text-xs font-medium text-emerald-700">{t('home.verified')}</span>}</span>
+        <span className="font-semibold">{r.author_name}{r.verified_purchase && <span className="ml-2 inline-flex items-center gap-1 text-xs font-medium text-emerald-700"><BadgeCheck size={13} />{t('home.verified')}</span>}</span>
         {r.product && <Link to={`/product/${r.product.slug}`} tabIndex={i >= items.length ? -1 : undefined} className="truncate pl-3 text-xs text-stone-450 underline">{pick(r.product, 'name')}</Link>}
       </figcaption>
     </figure>

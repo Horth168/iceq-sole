@@ -1,32 +1,25 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Lock, ShoppingBag, Tag, Trash2, X } from 'lucide-react'
+import { ArrowRight, Lock, ShoppingBag, Tag, Trash2, Truck, X } from 'lucide-react'
 import { api } from '../lib/api'
 import { useStore } from '../context/Store'
 import { useToast } from '../context/Toast'
 import { cls, khr, usd } from '../lib/format'
 import { EmptyState, Img, QtyStepper, Spinner } from '../components/ui'
 import { usePrefs } from '../context/Prefs'
+import PromoCode from '../components/PromoCode'
 
 export default function Cart() {
   const { t } = usePrefs()
-  const { cart, updateQty, removeItem, changeVariant, applyDiscount, removeDiscount, settings, refreshCart } = useStore()
+  const { cart, updateQty, removeItem, changeVariant, settings, refreshCart } = useStore()
   const toast = useToast()
   const navigate = useNavigate()
   const [busy, setBusy] = useState(null)
-  const [code, setCode] = useState('')
-  const [codeErr, setCodeErr] = useState('')
   useEffect(() => { refreshCart() }, []) // eslint-disable-line
 
   const run = async (id, fn) => {
     setBusy(id)
     try { await fn() } catch (e) { toast.error(e.message) } finally { setBusy(null) }
-  }
-  const onCode = async (e) => {
-    e.preventDefault()
-    setCodeErr('')
-    setBusy('code')
-    try { await applyDiscount(code); setCode(''); toast.success(t('bag.codeApplied')) } catch (err) { setCodeErr(err.message) } finally { setBusy(null) }
   }
 
   if (!cart) return <div className="container-x py-10"><div className="skeleton h-80" /></div>
@@ -45,7 +38,9 @@ export default function Cart() {
         <div>
           {free > 0 && (
             <div className="mb-6 rounded-2xl bg-white p-4 shadow-soft">
-              <p className="text-sm">{remaining > 0 ? t('bag.freeProgress', { amount: usd(remaining) }) : <b>{t('bag.freeUnlocked')}</b>}</p>
+              <p className="text-sm">{remaining > 0 ? t('bag.freeProgress', { amount: usd(remaining) }) : (
+                <b className="inline-flex items-center gap-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-ice-500/15 text-ice-500"><Truck size={14} strokeWidth={2.25} /></span>{t('bag.freeUnlocked')}</b>
+              )}</p>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-bone-200"><div className="h-full rounded-full bg-ice-500 transition-all duration-500" style={{ width: `${Math.min(100, ((free - remaining) / free) * 100)}%` }} /></div>
             </div>
           )}
@@ -57,20 +52,7 @@ export default function Cart() {
         <aside className="lg:sticky lg:top-28 lg:self-start">
           <div className="card p-6">
             <h2 className="font-display text-xl font-bold">{t('bag.summary')}</h2>
-            <form onSubmit={onCode} className="mt-5">
-              {cart.discount_code ? (
-                <div className="flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-3 text-sm">
-                  <span className="flex items-center gap-2 font-semibold text-emerald-800"><Tag size={15} /> {cart.discount_code}</span>
-                  <button type="button" onClick={() => run('code', removeDiscount)} aria-label={t('bag.removeCode')} className="text-emerald-800"><X size={16} /></button>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder={t('bag.codePlaceholder')} aria-label={t('bag.codePlaceholder')} className="field !min-h-[46px] uppercase" />
-                  <button className="btn-outline !min-h-[46px] shrink-0 !px-5" disabled={!code || busy === 'code'}>{busy === 'code' ? <Spinner className="h-4 w-4" /> : t('common.apply')}</button>
-                </div>
-              )}
-              {(codeErr || cart.messages?.[0]) && <p className="mt-2 text-xs font-medium text-signal">{codeErr || cart.messages[0]}</p>}
-            </form>
+            <PromoCode className="mt-5" />
             <dl className="mt-5 space-y-2.5 text-sm">
               <div className="flex justify-between"><dt>{t('common.subtotal')}</dt><dd className="tabular-nums">{usd(cart.subtotal)}</dd></div>
               {cart.discount_amount > 0 && <div className="flex justify-between text-emerald-700"><dt>{t('common.discount')}</dt><dd className="tabular-nums">−{usd(cart.discount_amount)}</dd></div>}

@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Expand, PackageX, X } from 'lucide-react'
+import { BadgeCheck, ChevronLeft, ChevronRight, Expand, PackageX, X } from 'lucide-react'
 import { api, assetUrl } from '../lib/api'
 import { peek, remember } from '../lib/cache'
 import { recentlyViewed } from '../lib/storage'
@@ -274,7 +274,7 @@ function Reviews({ slug, product }) {
                   <div className="flex items-center justify-between"><Stars value={r.rating} /><span className="text-xs text-stone-450">{date(r.created_at)}</span></div>
                   {r.title && <p className="mt-2 font-semibold">{r.title}</p>}
                   <p className="mt-1 text-ink-700">{r.body}</p>
-                  <p className="mt-2 text-xs text-stone-450">{r.author_name}{r.verified_purchase && t('product.verifiedPurchase')}</p>
+                  <p className="mt-2 text-xs text-stone-450">{r.author_name}{r.verified_purchase && <span className="inline-flex items-center gap-1 text-emerald-700"><BadgeCheck size={12} className="ml-0.5" />{t('product.verifiedPurchase')}</span>}</p>
                 </li>
               ))}
             </ul>

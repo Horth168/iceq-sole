@@ -41,7 +41,9 @@ export default function Layout() {
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-full focus:bg-white focus:px-4 focus:py-2">{t('common.skip')}</a>
       {/* iPhone home-screen app: keeps the clock / Dynamic Island area solid, content scrolls under it */}
       <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-[60] bg-night" style={{ height: 'env(safe-area-inset-top)' }} />
-      {!minimal && <Announcement />}
+      {/* the announcement bar normally reserves the iPhone status-bar space; checkout hides it,
+          so reserve that space here or the sticky header slides over the top of the page */}
+      {!minimal ? <Announcement /> : <div aria-hidden style={{ height: 'env(safe-area-inset-top)' }} />}
       <Header onSearch={() => setSearch(true)} onMenu={() => setMenu(true)} minimal={minimal} taxonomy={taxonomy} />
       <main id="main" key={pathname} className={cls('flex-1 animate-page-in', !minimal && 'pb-[calc(68px+env(safe-area-inset-bottom))] md:pb-0')}>
         <Outlet />
