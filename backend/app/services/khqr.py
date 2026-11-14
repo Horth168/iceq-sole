@@ -47,7 +47,9 @@ def _ascii(value: str, max_len: int) -> str:
 
 def build_khqr(*, account_id: str, merchant_name: str, merchant_city: str, amount: Decimal,
                currency: str = "USD", bill_number: str = "", store_label: str = "",
-               expiry_minutes: int = 30) -> str:
+               expiry_minutes: int = 30, account_information: str = "", acquiring_bank: str = "") -> str:
+    """Dynamic KHQR. Banks such as ABA give personal accounts a shared Bakong ID
+    (e.g. abaakhppxxx@abaa) plus the account number, which goes in `account_information`."""
     if currency not in CURRENCY_CODES:
         raise ValueError("KHQR supports USD or KHR")
     amount_str = f"{amount:.2f}" if currency == "USD" else str(int(amount))
@@ -55,7 +57,9 @@ def build_khqr(*, account_id: str, merchant_name: str, merchant_city: str, amoun
     parts = [
         _tlv("00", "01"),
         _tlv("01", "12"),  # dynamic QR (amount included)
-        _tlv("29", _tlv("00", account_id)),
+        _tlv("29", _tlv("00", account_id)
+              + (_tlv("01", _ascii(account_information, 32)) if account_information else "")
+              + (_tlv("02", _ascii(acquiring_bank, 32)) if acquiring_bank else "")),
         _tlv("52", "5999"),
         _tlv("53", CURRENCY_CODES[currency]),
         _tlv("54", amount_str),

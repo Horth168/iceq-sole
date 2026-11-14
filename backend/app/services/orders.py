@@ -130,6 +130,8 @@ def create_khqr_payment(db: Session, order: Order) -> Payment:
             merchant_city=pay_cfg.get("khqr_merchant_city") or "Phnom Penh",
             amount=order.total, currency="USD", bill_number=order.order_number, store_label="IceQ Sole",
             expiry_minutes=settings.KHQR_EXPIRY_MINUTES,
+            account_information=settings.BAKONG_ACCOUNT_NUMBER.replace(" ", ""),
+            acquiring_bank=settings.BAKONG_ACQUIRING_BANK,
         )
         payment.khqr_payload = payload
         payment.khqr_md5 = khqr.md5(payload)

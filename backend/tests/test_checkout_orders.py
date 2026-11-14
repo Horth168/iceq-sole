@@ -239,3 +239,23 @@ def test_settings_and_home(client, admin_headers, catalog):
     home = client.get("/api/home").json()
     assert home["featured"][0]["slug"] == "test-runner"
     assert client.get("/api/health").json()["status"] == "ok"
+
+
+def _tlv_parse(s):
+    out, i = {}, 0
+    while i + 4 <= len(s):
+        tag, n = s[i:i + 2], int(s[i + 2:i + 4])
+        out[tag] = s[i + 4:i + 4 + n]
+        i += 4 + n
+    return out
+
+
+def test_khqr_aba_personal_account_layout():
+    """ABA personal accounts: shared Bakong ID + account number + bank, same layout as ABA's own QR."""
+    payload = khqr.build_khqr(account_id="abaakhppxxx@abaa", merchant_name="IceQ Sole", merchant_city="Phnom Penh",
+                              amount=Decimal("81.5"), bill_number="IQ-1", account_information="001553304",
+                              acquiring_bank="ABA Bank")
+    top = _tlv_parse(payload)
+    assert _tlv_parse(top["29"]) == {"00": "abaakhppxxx@abaa", "01": "001553304", "02": "ABA Bank"}
+    assert top["53"] == "840" and top["54"] == "81.50" and top["01"] == "12"
+    assert khqr.crc16_ccitt(payload[:-4]) == payload[-4:]

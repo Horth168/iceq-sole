@@ -48,6 +48,8 @@ class Settings(BaseSettings):
 
     # --- Payments: Bakong KHQR (ABA / any Bakong-member bank account) ---
     BAKONG_ACCOUNT_ID: str = ""      # e.g. yourname@abaa  (public, shown inside the QR)
+    BAKONG_ACCOUNT_NUMBER: str = ""  # e.g. ABA personal: the USD account number (no spaces)
+    BAKONG_ACQUIRING_BANK: str = ""  # e.g. "ABA Bank"
     BAKONG_API_TOKEN: str = ""       # secret, from https://api-bakong.nbc.gov.kh
     BAKONG_API_URL: str = "https://api-bakong.nbc.gov.kh"
     KHQR_EXPIRY_MINUTES: int = 30
