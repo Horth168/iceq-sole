@@ -18,6 +18,8 @@ const km = {
     featured: 'ពិសេស', help: 'ជំនួយ', trackOrder: 'តាមដានការបញ្ជាទិញ', myAccount: 'គណនីរបស់ខ្ញុំ', myOrders: 'ការបញ្ជាទិញរបស់ខ្ញុំ',
     signInRegister: 'ចូលគណនី / ចុះឈ្មោះ', about: 'អំពី IceQ Sole', call: 'ហៅទូរស័ព្ទ {phone}', signOut: 'ចាកចេញ',
     hi: 'សួស្តី {name}', viewAllBrands: 'មើលម៉ាកទាំងអស់',
+    menuWelcome: 'សូមស្វាគមន៍មកកាន់ IceQ', menuGuest: 'ចូលគណនីដើម្បីតាមដានការបញ្ជាទិញ និងរក្សាបញ្ជីប្រាថ្នានៅគ្រប់ឧបករណ៍។', menuSignedIn: 'បានចូលជា {email}',
+    menuExplore: 'ស្វែងរក', menuQuick: 'តំណរហ័ស', menuPrefs: 'ចំណូលចិត្ត', menuFollow: 'តាមដានយើង',
   },
   announce: {
     freeOver: 'ដឹកជញ្ជូនឥតគិតថ្លៃ សម្រាប់ការបញ្ជាទិញលើសពី {amount}', fast: 'ដឹកជញ្ជូនរហ័សទូទាំងកម្ពុជា',

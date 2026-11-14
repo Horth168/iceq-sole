@@ -1,6 +1,7 @@
 // Language (English / Khmer) and theme (light / dark), remembered in localStorage.
 // The inline script in index.html applies both before React loads, so there is no flash.
 import { createContext, Fragment, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { flushSync } from 'react-dom'
 import en from '../i18n/en'
 import km from '../i18n/km'
 import { store } from '../lib/storage'
@@ -31,15 +32,36 @@ export function PrefsProvider({ children }) {
     document.documentElement.lang = l
   }, [])
 
-  const setTheme = useCallback((t) => {
+  // Theme switch: a circular reveal from the tapped button using the View Transitions API
+  // (one composited animation, smooth on phones). Older browsers get a short cross-fade.
+  const setTheme = useCallback((t, origin) => {
     const root = document.documentElement
-    root.classList.add('theme-anim')
-    root.classList.toggle('dark', t === 'dark')
-    root.style.colorScheme = t
-    document.querySelector('meta[name=theme-color]')?.setAttribute('content', t === 'dark' ? '#0B0B0D' : '#F5F4F0')
-    store.set('iq_theme', t)
-    setThemeState(t)
-    setTimeout(() => root.classList.remove('theme-anim'), 400)
+    const apply = () => {
+      root.classList.toggle('dark', t === 'dark')
+      root.style.colorScheme = t
+      const c = t === 'dark' ? '#0B0B0D' : '#F5F4F0'
+      document.querySelector('meta[name=theme-color]')?.setAttribute('content', c)
+      try { const tg = window.Telegram?.WebApp; tg?.setHeaderColor?.(c); tg?.setBackgroundColor?.(c) } catch { /* not in Telegram */ }
+      store.set('iq_theme', t)
+      setThemeState(t)
+    }
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduce) { apply(); return }
+    if (!document.startViewTransition) {
+      root.classList.add('theme-fade')
+      apply()
+      setTimeout(() => root.classList.remove('theme-fade'), 320)
+      return
+    }
+    const x = origin?.x ?? window.innerWidth - 40
+    const y = origin?.y ?? 40
+    const r = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y))
+    root.style.setProperty('--vt-x', `${x}px`)
+    root.style.setProperty('--vt-y', `${y}px`)
+    root.style.setProperty('--vt-r', `${r}px`)
+    root.classList.add('theme-vt')
+    const vt = document.startViewTransition(() => { flushSync(apply) })
+    vt.finished.finally(() => root.classList.remove('theme-vt'))
   }, [])
 
   // follow the OS setting until the visitor chooses a theme themselves

@@ -41,10 +41,27 @@
   html[lang='km'] .keep-latin { font-family: 'Archivo Variable', sans-serif; }
 }
 
-/* smooth colour change only while switching theme (avoids slowing normal interactions) */
-.theme-anim, .theme-anim *, .theme-anim *::before, .theme-anim *::after {
-  transition: background-color .35s ease, border-color .35s ease, color .35s ease, fill .35s ease !important;
+/* side menu */
+.menu-panel-in { animation: menu-in .55s cubic-bezier(.16,1,.3,1) both; }
+.menu-panel-out { animation: menu-out .32s cubic-bezier(.7,0,.84,0) both; }
+.menu-backdrop-in { animation: fade .35s ease both; }
+.menu-backdrop-out { animation: fade .32s ease reverse both; }
+.menu-panel-in .menu-item { animation: menu-item .6s cubic-bezier(.16,1,.3,1) both; }
+.menu-panel-out .menu-item { animation: none; }
+@keyframes menu-in { from { transform: translate3d(-104%,0,0); } to { transform: none; } }
+@keyframes menu-out { from { transform: none; } to { transform: translate3d(-104%,0,0); } }
+@keyframes menu-item { from { opacity: 0; transform: translate3d(-28px,0,0); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* theme switch: circular reveal (View Transitions) with a cross-fade fallback */
+.theme-vt::view-transition-old(root), .theme-vt::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+.theme-vt::view-transition-new(root) { animation: theme-reveal .6s cubic-bezier(.65,0,.35,1) both; }
+@keyframes theme-reveal {
+  from { clip-path: circle(0 at var(--vt-x) var(--vt-y)); }
+  to { clip-path: circle(var(--vt-r) at var(--vt-x) var(--vt-y)); }
 }
+.theme-fade body { animation: theme-fade .3s ease; }
+@keyframes theme-fade { from { opacity: .55; } to { opacity: 1; } }
 
 @layer components {
   .container-x { @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-10; }
@@ -72,7 +89,10 @@
   .pt-safe { padding-top: env(safe-area-inset-top); }
 
   /* 3D tilt: JS sets --rx / --ry / --mx / --my on hover-capable devices only */
-  .tilt { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .5s cubic-bezier(.2,.8,.2,1); will-change: transform; transform-style: preserve-3d; }
+  .tilt { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .5s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; }
+  @media (hover: hover) { .tilt { will-change: transform; } }
+  /* touch: quick press-down feedback instead of tilt */
+  @media (hover: none) { .tilt:active { transform: scale(.97); transition-duration: .15s; } }
   .tilt.is-tilting { transition: transform .08s linear; }
   .tilt-glare { background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.35), transparent 45%); }
 }
@@ -86,7 +106,7 @@
 .dark .bg-stone-200 { background: rgb(120 113 108 / .25); } .dark .text-stone-600 { color: #D6D3D1; }
 .dark .bg-amber-50 { background: rgb(245 158 11 / .12); } .dark .text-amber-900 { color: #FDE68A; }
 
-.reveal { opacity: 0; transform: translateY(18px); transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); }
+.reveal { opacity: 0; transform: translate3d(0, 26px, 0) scale(.965); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.16,1,.3,1); }
 .reveal.is-visible { opacity: 1; transform: none; }
 
 @media (prefers-reduced-motion: reduce) {

@@ -6,6 +6,7 @@ import { usePrefs } from '../context/Prefs'
 import { api } from '../lib/api'
 import { cls, usd } from '../lib/format'
 import Logo from './Logo'
+import MobileMenu from './MobileMenu'
 import { Drawer, Img, Price, QtyStepper, Spinner } from './ui'
 
 const NAV = [
@@ -70,7 +71,7 @@ export function ThemeToggle({ className = '' }) {
   const { theme, setTheme, t } = usePrefs()
   const dark = theme === 'dark'
   return (
-    <button onClick={() => setTheme(dark ? 'light' : 'dark')} aria-label={t('common.theme.toggle')} title={dark ? t('common.theme.light') : t('common.theme.dark')}
+    <button onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setTheme(dark ? 'light' : 'dark', { x: r.left + r.width / 2, y: r.top + r.height / 2 }) }} aria-label={t('common.theme.toggle')} title={dark ? t('common.theme.light') : t('common.theme.dark')}
       className={cls('relative grid h-11 w-11 place-items-center overflow-hidden rounded-full transition hover:bg-ink/5', className)}>
       <Sun size={20} className={cls('absolute transition-all duration-500', dark ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100')} />
       <Moon size={19} className={cls('absolute transition-all duration-500', dark ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0')} />
@@ -242,36 +243,6 @@ function MobileTabBar({ onSearch }) {
         })}
       </div>
     </nav>
-  )
-}
-
-function MobileMenu({ open, onClose, taxonomy }) {
-  const { user, settings, logout } = useStore()
-  const { t, pick } = usePrefs()
-  return (
-    <Drawer open={open} onClose={onClose} side="left">
-      <div className="flex items-center justify-between px-5 py-4"><Logo /><button onClick={onClose} aria-label={t('nav.closeMenu')} className="grid h-10 w-10 place-items-center rounded-full hover:bg-ink/5"><X size={20} /></button></div>
-      <div className="flex items-center gap-2 px-5 pb-2"><LangToggle /><ThemeToggle className="border border-ink/10" /></div>
-      <nav className="flex-1 overflow-y-auto px-5 pb-6">
-        {NAV.map((n) => (
-          <Link key={n.to} to={n.to} className={cls('flex items-center justify-between border-b border-ink/10 py-4 font-display text-2xl font-extrabold uppercase tracking-tight', n.accent && 'text-signal')}>
-            {t(n.key)}<ArrowRight size={18} />
-          </Link>
-        ))}
-        <p className="eyebrow mb-3 mt-8">{t('nav.categories')}</p>
-        <div className="flex flex-wrap gap-2">
-          {taxonomy.categories.map((c) => <Link key={c.id} to={`/category/${c.slug}`} className="chip">{pick(c, 'name')}</Link>)}
-        </div>
-        <p className="eyebrow mb-3 mt-8">{t('nav.help')}</p>
-        <div className="space-y-3 text-[15px]">
-          <Link to="/track" className="block">{t('nav.trackOrder')}</Link>
-          <Link to={user ? '/account' : '/login'} className="block">{user ? t('nav.myAccount') : t('nav.signInRegister')}</Link>
-          <Link to="/about" className="block">{t('nav.about')}</Link>
-          {settings?.store?.phone && <a href={`tel:${settings.store.phone.replace(/\s/g, '')}`} className="block">{t('nav.call', { phone: settings.store.phone })}</a>}
-          {user && <button onClick={() => { onClose(); logout() }} className="block text-signal">{t('nav.signOut')}</button>}
-        </div>
-      </nav>
-    </Drawer>
   )
 }
 

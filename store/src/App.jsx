@@ -2,10 +2,17 @@ import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import Home from './pages/Home'
-import Shop from './pages/Shop'
-import Product from './pages/Product'
 import { NotFound } from './pages/Misc'
 
+// Shop and product pages load on demand, then prefetch while the browser is idle
+const loadShop = () => import('./pages/Shop')
+const loadProduct = () => import('./pages/Product')
+const Shop = lazy(loadShop)
+const Product = lazy(loadProduct)
+if (typeof window !== 'undefined') {
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 1500))
+  idle(() => { loadShop(); loadProduct() })
+}
 const Cart = lazy(() => import('./pages/Cart'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const Order = lazy(() => import('./pages/Order'))

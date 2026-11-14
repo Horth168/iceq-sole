@@ -12,9 +12,17 @@ export default defineConfig({
         name: 'IceQ Sole — Premium Sneakers',
         short_name: 'IceQ Sole',
         description: 'Premium sneakers delivered across Cambodia.',
-        theme_color: '#0A0A0B',
-        background_color: '#F5F4F0',
+        id: '/',
+        theme_color: '#0B0B0D',
+        background_color: '#0B0B0D',
         display: 'standalone',
+        display_override: ['standalone', 'minimal-ui'],
+        categories: ['shopping', 'lifestyle'],
+        shortcuts: [
+          { name: 'New arrivals', url: '/new-arrivals', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'My bag', url: '/cart', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Track order', url: '/track', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+        ],
         orientation: 'portrait',
         start_url: '/',
         scope: '/',
@@ -26,6 +34,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,woff2,webp,png}'],
+        globIgnores: ['**/icons/splash-*', '**/images/**', '**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//],
         runtimeCaching: [

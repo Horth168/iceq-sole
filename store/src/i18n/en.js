@@ -18,6 +18,8 @@ const en = {
     featured: 'Featured', help: 'Help', trackOrder: 'Track an order', myAccount: 'My account', myOrders: 'My orders',
     signInRegister: 'Sign in / Register', about: 'About IceQ Sole', call: 'Call {phone}', signOut: 'Sign out',
     hi: 'Hi, {name}', viewAllBrands: 'View all brands',
+    menuWelcome: 'Welcome to IceQ', menuGuest: 'Sign in to track orders and keep your wishlist on every device.', menuSignedIn: 'Signed in as {email}',
+    menuExplore: 'Explore', menuQuick: 'Quick links', menuPrefs: 'Preferences', menuFollow: 'Follow us',
   },
   announce: {
     freeOver: 'Free delivery on orders over {amount}', fast: 'Fast delivery across Cambodia',

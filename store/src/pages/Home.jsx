@@ -127,10 +127,11 @@ function Rail({ eyebrow, title, link, items, loading }) {
   return (
     <section className="container-x mt-20 md:mt-28">
       <SectionHeader eyebrow={eyebrow} title={title} link={link} />
-      <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-4 pt-2 sm:-mx-6 sm:gap-5 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
-        {(loading ? Array.from({ length: 4 }) : items.slice(0, 8)).map((p, i) => (
-          <div key={p?.id ?? i} className={cls('w-[68%] shrink-0 snap-start sm:w-[42%] lg:w-auto', i >= 4 && 'lg:hidden')}>
-            {loading ? <ProductCardSkeleton /> : <ProductCard product={p} index={i} sizes="(min-width:1024px) 24vw, 68vw" />}
+      {/* phones: 2-column grid (scrolls with the page, no sideways swiping); desktop: 4 across */}
+      <div className="grid grid-cols-2 gap-x-3 gap-y-7 pt-2 sm:gap-x-5 lg:grid-cols-4">
+        {(loading ? Array.from({ length: 4 }) : items.slice(0, 4)).map((p, i) => (
+          <div key={p?.id ?? i} className="min-w-0">
+            {loading ? <ProductCardSkeleton /> : <ProductCard product={p} index={i} sizes="(min-width:1024px) 24vw, 48vw" />}
           </div>
         ))}
       </div>

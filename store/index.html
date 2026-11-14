@@ -19,18 +19,50 @@
           document.documentElement.lang = l;
         } catch (e) {}
       })();
+      // Inside a Telegram Mini App: load Telegram's SDK (only there), open full height and stop
+      // vertical swipes from closing the app, so the page scrolls like a normal app.
+      (function () {
+        var inTg = /tgWebApp/.test(location.hash) || window.TelegramWebviewProxy || /Telegram/i.test(navigator.userAgent);
+        if (!inTg) return;
+        var s = document.createElement('script');
+        s.src = 'https://telegram.org/js/telegram-web-app.js'; s.async = true;
+        s.onload = function () {
+          var tg = window.Telegram && window.Telegram.WebApp; if (!tg) return;
+          try {
+            tg.ready(); tg.expand();
+            if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
+            var c = document.documentElement.classList.contains('dark') ? '#0B0B0D' : '#F5F4F0';
+            if (tg.setHeaderColor) tg.setHeaderColor(c);
+            if (tg.setBackgroundColor) tg.setBackgroundColor(c);
+            document.documentElement.classList.add('in-telegram');
+          } catch (e) {}
+        };
+        document.head.appendChild(s);
+      })();
     </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="IceQ Sole" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <!-- iPhone launch screens (home-screen app) -->
+    <link rel="apple-touch-startup-image" href="/icons/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/icons/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/icons/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/icons/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/icons/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/icons/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/icons/splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/icons/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/icons/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
     <meta property="og:title" content="IceQ Sole — Premium Sneakers" />
     <meta property="og:description" content="Stay cold. Walk loud. Premium sneakers delivered across Cambodia." />
     <meta property="og:image" content="/images/og-cover.jpg" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="canonical" href="/" />
+    <link rel="preconnect" href="https://iceq-sole-api.onrender.com" crossorigin />
+    <link rel="preconnect" href="https://pub-19b9f0c3f6794c5787ecfccc34571892.r2.dev" />
   </head>
   <body class="antialiased">
     <div id="root"></div>
