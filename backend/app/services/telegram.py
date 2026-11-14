@@ -17,6 +17,7 @@ import hmac
 import html
 import logging
 import threading
+import time
 from decimal import Decimal
 
 import httpx
@@ -62,7 +63,7 @@ def call(method: str, **payload) -> dict | None:
     if not enabled():
         return None
     try:
-        r = httpx.post(API.format(token=settings.TELEGRAM_BOT_TOKEN, method=method), json=payload, timeout=12)
+        r = httpx.post(API.format(token=settings.TELEGRAM_BOT_TOKEN, method=method), json=payload, timeout=20)
         data = r.json()
         if not data.get("ok"):
             log.warning("Telegram %s failed: %s", method, data.get("description"))
@@ -73,11 +74,18 @@ def call(method: str, **payload) -> dict | None:
 
 
 def register_webhook() -> None:
+    """Point Telegram at this server. Retries with back-off: the network can be slow right after a deploy."""
     if not enabled() or not settings.API_PUBLIC_URL.startswith("https://"):
         return
-    call("setWebhook", url=webhook_url(), secret_token=webhook_secret(),
-         allowed_updates=["message", "callback_query"], drop_pending_updates=False)
-    call("setMyCommands", commands=[{"command": "start", "description": "Connect this chat to IceQ Sole alerts"}])
+    for attempt, wait in enumerate((0, 5, 15, 30, 60, 120, 300)):
+        time.sleep(wait)
+        res = call("setWebhook", url=webhook_url(), secret_token=webhook_secret(),
+                   allowed_updates=["message", "callback_query"], drop_pending_updates=False)
+        if res and res.get("ok"):
+            log.info("Telegram webhook registered (attempt %d)", attempt + 1)
+            call("setMyCommands", commands=[{"command": "start", "description": "Connect this chat to IceQ Sole alerts"}])
+            return
+    log.warning("Telegram webhook could not be registered; it will be retried on the next restart")
 
 
 def register_webhook_async() -> None:

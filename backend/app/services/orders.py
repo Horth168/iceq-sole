@@ -123,7 +123,15 @@ def latest_payment(order: Order) -> Payment | None:
 def create_khqr_payment(db: Session, order: Order) -> Payment:
     pay_cfg = get_setting(db, "payments")
     payment = Payment(method=PaymentMethod.khqr, amount=order.total, currency="USD", status=PaymentStatus.unpaid)
-    if settings.BAKONG_ACCOUNT_ID:
+    template = (pay_cfg.get("khqr_template") or "").strip()
+    if template:
+        payload = khqr.build_from_template(template, amount=order.total, currency="USD",
+                                           bill_number=order.order_number,  # same fields as the tested ABA QR
+                                           expiry_minutes=settings.KHQR_EXPIRY_MINUTES)
+        payment.khqr_payload = payload
+        payment.khqr_md5 = khqr.md5(payload)
+        payment.expires_at = utcnow() + timedelta(minutes=settings.KHQR_EXPIRY_MINUTES)
+    elif settings.BAKONG_ACCOUNT_ID:
         payload = khqr.build_khqr(
             account_id=settings.BAKONG_ACCOUNT_ID,
             merchant_name=pay_cfg.get("khqr_merchant_name") or "IceQ Sole",

@@ -31,6 +31,7 @@ DEFAULTS: dict[str, dict] = {
         "khqr_merchant_name": "IceQ Sole",
         "khqr_merchant_city": "Phnom Penh",
         "khqr_static_image_url": "",   # optional: upload your printed ABA KHQR as fallback
+        "khqr_template": "",           # your bank KHQR code (read from the uploaded QR); per-order QRs are built from it
         "bank_name": "ABA Bank",
         "bank_account_name": "",
         "bank_account_number": "",
@@ -82,7 +83,7 @@ def available_methods(db: Session) -> dict:
 
     pay = get_setting(db, "payments")
     has_bank = bool((pay.get("bank_account_number") or "").strip())
-    has_qr = bool(settings.BAKONG_ACCOUNT_ID or pay.get("khqr_static_image_url"))
+    has_qr = bool(pay.get("khqr_template") or settings.BAKONG_ACCOUNT_ID or pay.get("khqr_static_image_url"))
     return {
         "khqr_enabled": bool(pay["khqr_enabled"] and has_qr),
         "bank_transfer_enabled": bool(pay["bank_transfer_enabled"] and has_bank),

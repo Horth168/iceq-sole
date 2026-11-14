@@ -259,3 +259,44 @@ def test_khqr_aba_personal_account_layout():
     assert _tlv_parse(top["29"]) == {"00": "abaakhppxxx@abaa", "01": "001553304", "02": "ABA Bank"}
     assert top["53"] == "840" and top["54"] == "81.50" and top["01"] == "12"
     assert khqr.crc16_ccitt(payload[:-4]) == payload[-4:]
+
+
+def _fake_bank_qr():
+    """An ABA-style static KHQR with a bank-specific tag 40 (fake account numbers)."""
+    T = lambda t, v: f"{t}{len(v):02d}{v}"  # noqa: E731
+    body = (T("00", "01") + T("01", "11")
+            + T("29", T("00", "abaakhppxxx@abaa") + T("01", "000000001") + T("02", "ABA Bank"))
+            + T("40", T("00", "abaP2P") + T("01", "ABCDEF123456") + T("02", "000000001") + T("03", "000000002") + T("04", "Dual"))
+            + T("52", "5999") + T("53", "116") + T("58", "KH") + T("59", "TEST SHOP") + T("60", "Phnom Penh") + "6304")
+    return body + khqr.crc16_ccitt(body)
+
+
+def test_khqr_from_bank_template_keeps_bank_fields():
+    tpl = _fake_bank_qr()
+    assert khqr.describe_template(tpl)["name"] == "TEST SHOP"
+    p = khqr.build_from_template(tpl, amount=Decimal("81.5"), bill_number="IQ-9")
+    top = _tlv_parse(p)
+    src = _tlv_parse(tpl)
+    assert top["29"] == src["29"] and top["40"] == src["40"] and top["59"] == "TEST SHOP"  # bank data untouched
+    assert top["01"] == "12" and top["53"] == "840" and top["54"] == "81.50"
+    assert _tlv_parse(top["62"])["01"] == "IQ-9" and "99" in top
+    assert khqr.crc16_ccitt(p[:-4]) == p[-4:]
+    # broken / non-KHQR codes are refused
+    import pytest
+    with pytest.raises(ValueError):
+        khqr.describe_template(tpl[:-1] + ("0" if tpl[-1] != "0" else "1"))
+    with pytest.raises(ValueError):
+        khqr.describe_template("hello")
+
+
+def test_checkout_uses_saved_bank_template(client, db, catalog, admin_headers):
+    tpl = _fake_bank_qr()
+    assert client.post("/api/admin/settings/khqr/preview", json={"template": "nope"}, headers=admin_headers).status_code == 400
+    assert client.post("/api/admin/settings/khqr/preview", json={"template": tpl}, headers=admin_headers).json()["account"] == "000000001"
+    assert client.put("/api/admin/settings/payments", json={"khqr_template": "bad"}, headers=admin_headers).status_code == 400
+    assert client.put("/api/admin/settings/payments", json={"khqr_template": tpl}, headers=admin_headers).status_code == 200
+    v = catalog["variants"][("White", "43")]
+    token = _cart_add(client, v.id, 1).json()["token"]
+    pay = _checkout(client, token, method="khqr").json()["payment"]
+    top = _tlv_parse(pay["khqr"])
+    assert top["40"] == _tlv_parse(tpl)["40"] and top["54"] == "81.50" and top["53"] == "840"

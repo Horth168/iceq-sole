@@ -96,3 +96,56 @@ def check_payment(payload_md5: str) -> dict:
     if resp.status_code == 200 and body.get("responseCode") == 0 and body.get("data"):
         return {"paid": True, "data": body.get("data"), "error": None}
     return {"paid": False, "data": body, "error": None if resp.status_code == 200 else f"HTTP {resp.status_code}"}
+
+
+# ---------------------------------------------------------------- bank-QR template
+# Banks such as ABA add their own fields (e.g. ABA's tag 40 with both account numbers) and reject a
+# QR without them. So the store can start from the merchant's own printed bank KHQR: every field is
+# kept exactly, and only the amount, currency, bill number and expiry are set per order.
+_PER_ORDER = {"00", "01", "53", "54", "62", "63", "99"}
+
+
+def parse_tlv(s: str) -> list[tuple[str, str]]:
+    out, i = [], 0
+    while i < len(s):
+        if i + 4 > len(s) or not s[i:i + 4].isdigit():
+            raise ValueError("Not a valid KHQR code")
+        tag, n = s[i:i + 2], int(s[i + 2:i + 4])
+        if i + 4 + n > len(s):
+            raise ValueError("Not a valid KHQR code")
+        out.append((tag, s[i + 4:i + 4 + n]))
+        i += 4 + n
+    return out
+
+
+def describe_template(template: str) -> dict:
+    """Validate a bank KHQR and return what it pays into (shown to the admin before saving)."""
+    t = (template or "").strip()
+    if not t.startswith("000201") or len(t) < 30 or crc16_ccitt(t[:-4]) != t[-4:].upper():
+        raise ValueError("This is not a valid KHQR code (checksum mismatch)")
+    fields = dict(parse_tlv(t))
+    if fields.get("58") != "KH" or not ({"29", "30"} & set(fields)):
+        raise ValueError("This QR is not a Cambodian KHQR payment code")
+    acct = dict(parse_tlv(fields.get("29") or fields.get("30")))
+    return {"name": fields.get("59", ""), "city": fields.get("60", ""), "bakong_id": acct.get("00", ""),
+            "account": acct.get("01", ""), "bank": acct.get("02", "")}
+
+
+def build_from_template(template: str, *, amount: Decimal, currency: str = "USD", bill_number: str = "",
+                        store_label: str = "", expiry_minutes: int = 30) -> str:
+    describe_template(template)
+    if currency not in CURRENCY_CODES:
+        raise ValueError("KHQR supports USD or KHR")
+    amount_str = f"{amount:.2f}" if currency == "USD" else str(int(amount))
+    now_ms = int(time.time() * 1000)
+    fields = {tag: val for tag, val in parse_tlv(template.strip()) if tag not in _PER_ORDER}
+    fields.update({
+        "00": "01",
+        "01": "12",  # dynamic: one amount, one order
+        "53": CURRENCY_CODES[currency],
+        "54": amount_str,
+        "62": _tlv("01", _ascii(bill_number, 25)) + (_tlv("03", _ascii(store_label, 25)) if store_label else ""),
+        "99": _tlv("00", str(now_ms)) + _tlv("01", str(now_ms + expiry_minutes * 60_000)),
+    })
+    payload = "".join(_tlv(tag, fields[tag]) for tag in sorted(fields)) + "6304"
+    return payload + crc16_ccitt(payload)

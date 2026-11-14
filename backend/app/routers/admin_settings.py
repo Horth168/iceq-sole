@@ -13,6 +13,7 @@ from app.services import images
 from app.services.settings_store import DEFAULTS, all_settings, get_setting, set_setting
 from app.services.storage import get_storage
 
+from app.services import khqr  # noqa: E402
 from app.services.email import smtp_configured  # noqa: E402
 
 router = APIRouter(prefix="/api/admin", tags=["Admin · settings"])
@@ -45,11 +46,26 @@ def write_settings(key: str, value: dict, db: Session = Depends(get_db), _: User
             raise HTTPException(400, "KHR rate looks wrong (expected 1000–10000)")
     if key == "tax" and "rate_percent" in value and not 0 <= float(value["rate_percent"]) <= 30:
         raise HTTPException(400, "Tax rate must be between 0 and 30%")
+    if key == "payments" and (value.get("khqr_template") or "").strip():
+        try:
+            khqr.describe_template(value["khqr_template"])
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+        value["khqr_template"] = value["khqr_template"].strip()
     if key == "delivery":
         for k in ("phnom_penh_fee", "province_fee", "free_shipping_threshold"):
             if k in value and value[k] is not None and float(value[k]) < 0:
                 raise HTTPException(400, "Fees cannot be negative")
     return set_setting(db, key, value)
+
+
+@router.post("/settings/khqr/preview")
+def preview_khqr(body: dict, _: User = Depends(require_admin)):
+    """Check a bank KHQR code and show who it pays, before it is saved."""
+    try:
+        return khqr.describe_template(str(body.get("template", "")))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
 
 
 @router.post("/settings/upload/{kind}")

@@ -171,6 +171,8 @@ export default {
     localWarn: '(development only — set STORAGE_PROVIDER=cloudflare for production)', environment: 'Environment', timezone: 'Time zone',
     telegram: 'Telegram alerts', tgOk: 'Telegram connected: orders and payments arrive with Received / Not received buttons',
     tgNo: 'Telegram not connected: set TELEGRAM_BOT_TOKEN and TELEGRAM_ADMIN_CHAT_IDS in the backend environment',
+    bankQr: 'Your bank KHQR (recommended)', bankQrHint: 'Upload a screenshot of the QR from your banking app (e.g. ABA → Receive). Every order then gets its own QR with the exact amount and order number, paid straight into this account.',
+    bankQrUpload: 'Upload bank QR', bankQrReplace: 'Replace QR', bankQrActive: 'Active: customers pay into this account', bankQrNone: 'No bank QR saved yet.', bankQrCheck: 'Check these details, then save:', bankQrUse: 'Use this QR', bankQrName: 'Account name', bankQrBank: 'Bank', bankQrAccount: 'Account', bankQrCity: 'City', bankQrNoCode: 'No QR code found in that image. Try a clearer screenshot.', bankQrRemoveConfirm: 'Stop using this bank QR?', bankQrSaved: 'Bank QR saved',
     autoVerify: 'KHQR auto-verify', email: 'Password-reset email',
     emailOk: 'SMTP configured', emailNo: 'Not configured — set SMTP_* variables in the backend environment',
     secrets: 'Secrets (database, storage keys, Bakong token, SMTP password) live only in the backend environment variables and are never sent to this dashboard.',

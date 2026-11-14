@@ -171,6 +171,8 @@ export default {
     localWarn: '(សម្រាប់អភិវឌ្ឍន៍តែប៉ុណ្ណោះ — កំណត់ STORAGE_PROVIDER=cloudflare សម្រាប់ផលិតកម្ម)', environment: 'បរិស្ថាន', timezone: 'ល្វែងម៉ោង',
     telegram: 'ការជូនដំណឹង Telegram', tgOk: 'បានភ្ជាប់ Telegram៖ ការបញ្ជាទិញ និងការទូទាត់មកដល់ជាមួយប៊ូតុង បានទទួល / មិនបានទទួល',
     tgNo: 'មិនទាន់ភ្ជាប់ Telegram៖ កំណត់ TELEGRAM_BOT_TOKEN និង TELEGRAM_ADMIN_CHAT_IDS ក្នុង backend',
+    bankQr: 'KHQR ធនាគាររបស់អ្នក (ណែនាំ)', bankQrHint: 'ផ្ទុករូបថតអេក្រង់ QR ពីកម្មវិធីធនាគាររបស់អ្នក (ឧ. ABA → ទទួល)។ បន្ទាប់មក ការបញ្ជាទិញនីមួយៗទទួលបាន QR ផ្ទាល់ខ្លួន ជាមួយចំនួនទឹកប្រាក់ និងលេខបញ្ជាទិញត្រឹមត្រូវ ហើយបង់ចូលគណនីនេះផ្ទាល់។',
+    bankQrUpload: 'ផ្ទុក QR ធនាគារ', bankQrReplace: 'ប្តូរ QR', bankQrActive: 'កំពុងប្រើ៖ អតិថិជនបង់ចូលគណនីនេះ', bankQrNone: 'មិនទាន់មាន QR ធនាគារ។', bankQrCheck: 'ពិនិត្យព័ត៌មានទាំងនេះ រួចរក្សាទុក៖', bankQrUse: 'ប្រើ QR នេះ', bankQrName: 'ឈ្មោះគណនី', bankQrBank: 'ធនាគារ', bankQrAccount: 'គណនី', bankQrCity: 'ទីក្រុង', bankQrNoCode: 'រកមិនឃើញ QR ក្នុងរូបនោះទេ។ សូមសាកល្បងរូបថតច្បាស់ជាងនេះ។', bankQrRemoveConfirm: 'ឈប់ប្រើ QR ធនាគារនេះ?', bankQrSaved: 'បានរក្សាទុក QR ធនាគារ',
     autoVerify: 'ផ្ទៀងផ្ទាត់ KHQR ស្វ័យប្រវត្តិ', email: 'អ៊ីមែលកំណត់ពាក្យសម្ងាត់ឡើងវិញ',
     emailOk: 'បានកំណត់ SMTP', emailNo: 'មិនទាន់កំណត់ — កំណត់អថេរ SMTP_* ក្នុង backend',
     secrets: 'ព័ត៌មានសម្ងាត់ (មូលដ្ឋានទិន្នន័យ កូនសោផ្ទុក Bakong token ពាក្យសម្ងាត់ SMTP) មានតែក្នុងអថេរបរិស្ថាន backend ហើយមិនដែលផ្ញើមកផ្ទាំងនេះទេ។',

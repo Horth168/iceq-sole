@@ -5,6 +5,7 @@ import { useAuth } from '../components/Layout'
 import { cls, date } from '../lib/format'
 import { Card, Field, Modal, PageHeader, Pill, Spinner, Toggle, useToast } from '../components/ui'
 import { Rich, usePrefs } from '../context/Prefs'
+import BankQrCard from '../components/BankQrCard'
 
 const TABS = ['store', 'delivery', 'payments', 'regional', 'staff', 'system']
 
@@ -83,6 +84,10 @@ export default function Settings() {
               <Status ok={!!s.system.email_configured} yes={`${t('settings.email')}: ${t('settings.emailOk')}`} no={`${t('settings.email')}: ${t('settings.emailNo')}`} />
             </div>
           </Card>
+          <BankQrCard template={pay.khqr_template} disabled={ro} onSave={async (tpl) => {
+            const r = await api('/api/admin/settings/payments', { method: 'PUT', body: { khqr_template: tpl } })
+            setS({ ...s, payments: r }); toast.success(t('settings.bankQrSaved'))
+          }} />
           <Card title={t('settings.khqrBank')} action={saveBtn('payments')}>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label={t('settings.merchant')}><input disabled={ro} className="field" maxLength={25} value={pay.khqr_merchant_name} onChange={(e) => up('payments', 'khqr_merchant_name', e.target.value)} /></Field>
