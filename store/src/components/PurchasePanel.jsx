@@ -162,7 +162,7 @@ export default function PurchasePanel({ product: p, colorId, onColorChange, comp
       )}
 
       {!compact && showSticky && p.in_stock && createPortal(
-        <div className="pb-safe fixed inset-x-0 bottom-[calc(68px+env(safe-area-inset-bottom))] z-40 animate-slide-up border-t border-ink/10 bg-bone/95 px-4 py-3 backdrop-blur-xl md:hidden">
+        <div className="fixed inset-x-0 bottom-[calc(68px+env(safe-area-inset-bottom))] z-40 animate-slide-up border-t border-ink/10 bg-bone/95 px-4 py-3 backdrop-blur-xl md:hidden">
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{name}</p>

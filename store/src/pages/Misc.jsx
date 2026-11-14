@@ -6,7 +6,7 @@ import { useStore } from '../context/Store'
 import { usePrefs } from '../context/Prefs'
 import { useMeta } from '../lib/meta'
 import { ProductGrid } from '../components/ProductCard'
-import { EmptyState, Img, Reveal } from '../components/ui'
+import { BrandMark, EmptyState, Reveal } from '../components/ui'
 
 export function Wishlist() {
   const { wishIds, user } = useStore()
@@ -44,12 +44,13 @@ export function Brands() {
       <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
         {(brands || Array.from({ length: 8 })).map((b, i) => b ? (
           <Reveal key={b.id} delay={(i % 4) * 60}>
-            <Link to={`/brands/${b.slug}`} className="group card flex min-h-[180px] flex-col justify-between p-5 transition duration-300 hover:-translate-y-1 hover:shadow-lift sm:min-h-[220px] sm:p-6">
-              <div className="flex items-center justify-between">
-                {b.logo_url ? <Img src={b.logo_url} className="h-10 w-20 bg-transparent" imgClass="object-contain" placeholder={false} /> : <span className="text-xs text-stone-450">{t('common.styles', { n: b.product_count })}</span>}
+            <Link to={`/brands/${b.slug}`} className="group card relative flex min-h-[180px] flex-col justify-between overflow-hidden p-5 transition duration-300 hover:-translate-y-1 hover:shadow-lift sm:min-h-[220px] sm:p-6">
+              <BrandMark brand={b} className="pointer-events-none absolute -right-4 top-6 h-[55%] w-[75%] text-ink/[.06] transition duration-500 ease-out group-hover:scale-110 group-hover:text-ice-500/20" />
+              <div className="relative flex items-center justify-between">
+                <span className="flex items-center gap-2.5"><BrandMark brand={b} className="h-7 w-11 text-ink" /><span className="text-xs text-stone-450">{t(b.product_count === 1 ? 'common.style' : 'common.styles', { n: b.product_count })}</span></span>
                 <ArrowUpRight size={18} className="transition duration-300 group-hover:rotate-45" />
               </div>
-              <div><p className="keep-latin font-wide text-xl font-black uppercase leading-none sm:text-2xl">{b.name}</p><p className="mt-2 line-clamp-2 text-sm text-stone-450">{b.description}</p></div>
+              <div className="relative"><p className="keep-latin font-wide text-xl font-black uppercase leading-none sm:text-2xl">{b.name}</p><p className="mt-2 line-clamp-2 text-sm text-stone-450">{b.description}</p></div>
             </Link>
           </Reveal>
         ) : <div key={i} className="skeleton min-h-[180px] sm:min-h-[220px]" />)}

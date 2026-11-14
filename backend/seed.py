@@ -28,6 +28,7 @@ from app.models import (Banner, Brand, Notification, Category, Color, Discount, 
 from app.security import hash_password
 from app.services import images as image_svc
 from app.services import inventory
+from app.services.storage import get_storage
 from app.services import orders as order_svc
 from app.utils import money, new_order_number, slugify, utcnow
 
@@ -36,7 +37,7 @@ PHOTOS = json.loads((ASSETS / "photos.json").read_text(encoding="utf-8"))["photo
 rng = random.Random(7)
 
 # Bump when sync_catalog() learns something new; it runs once per version on existing databases.
-SYNC_KEY, SYNC_VERSION = "seed_sync", 2
+SYNC_KEY, SYNC_VERSION = "seed_sync", 3
 
 BRANDS = [
     ("Nike", "Performance and street icons from Beaverton."),
@@ -306,6 +307,17 @@ def sync_catalog(db, force: bool = False) -> None:
                 prod.is_active = False
                 hidden.append(prod.slug)
 
+    # v3: brand logos (one-colour SVG marks: Simple Icons, CC0; Wikimedia Commons, PD-textlogo) for
+    # brands that have no logo yet - an admin's own upload is never replaced
+    logos = 0
+    if done < 3:
+        for b in brands.values():
+            svg = ASSETS / "brands" / f"{b.slug}.svg"
+            if svg.exists() and not b.logo_url:
+                key = f"brands/{b.slug}.svg"
+                b.logo_url, b.logo_key = get_storage().put(key, svg.read_bytes(), "image/svg+xml"), key
+                logos += 1
+
     sync_banners(db)
     if flag:
         flag.value = {"version": SYNC_VERSION}
@@ -313,7 +325,8 @@ def sync_catalog(db, force: bool = False) -> None:
         db.add(StoreSetting(key=SYNC_KEY, value={"version": SYNC_VERSION}))
     db.commit()
     print(f"Catalogue sync v{SYNC_VERSION}: removed {len(svgs)} illustrations, added {created} products and {photos} photos"
-          + (f", hid {len(hidden)} products without photos" if hidden else ""))
+          + (f", hid {len(hidden)} products without photos" if hidden else "")
+          + (f", added {logos} brand logos" if logos else ""))
 
 
 def _set_banner_photo(db, b: Banner, spec: dict) -> None:

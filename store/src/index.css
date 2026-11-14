@@ -41,6 +41,16 @@
   html[lang='km'] .keep-latin { font-family: 'Archivo Variable', sans-serif; }
 }
 
+/* reviews: endless right-to-left slide, pauses while touched/hovered */
+.reviews-marquee { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+.reviews-track { padding-left: 1rem; animation: reviews-slide var(--marquee-duration, 40s) linear infinite; will-change: transform; }
+.reviews-marquee:hover .reviews-track, .reviews-marquee:active .reviews-track { animation-play-state: paused; }
+@keyframes reviews-slide { from { transform: translate3d(0,0,0); } to { transform: translate3d(-50%,0,0); } }
+@media (prefers-reduced-motion: reduce) {
+  .reviews-marquee { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+  .reviews-track { animation: none; }
+}
+
 /* side menu */
 .menu-panel-in { animation: menu-in .55s cubic-bezier(.16,1,.3,1) both; }
 .menu-panel-out { animation: menu-out .32s cubic-bezier(.7,0,.84,0) both; }

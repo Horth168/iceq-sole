@@ -66,6 +66,8 @@ export function Toggle({ checked, onChange, label, disabled }) {
 }
 
 export function Thumb({ src, className = 'h-12 w-12' }) {
+  // logos (SVG) are shown whole on a white chip so black marks stay visible in dark mode
+  if (src && /\.svg(\?|$)/i.test(src)) return <img src={assetUrl(src)} alt="" loading="lazy" className={cls('shrink-0 rounded-xl bg-snow object-contain p-2 ring-1 ring-ink/10', className)} />
   return src ? <img src={assetUrl(src)} alt="" loading="lazy" className={cls('shrink-0 rounded-xl bg-bone-200 object-cover', className)} />
     : <div className={cls('shrink-0 rounded-xl bg-bone-200', className)} />
 }

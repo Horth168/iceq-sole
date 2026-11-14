@@ -143,7 +143,6 @@ function Gallery({ images, name }) {
             {images.map((_, n) => <span key={n} className={cls('h-1.5 rounded-full transition-all duration-300', n === i ? 'w-6 bg-ink' : 'w-1.5 bg-ink/25')} />)}
           </div>
         )}
-        {cur.credit && <p className="mt-2 text-right text-[11px] text-stone-450">{t('common.photoBy', { credit: cur.credit })}</p>}
       </div>
       {full && <Lightbox images={images} start={i} onClose={() => setFull(false)} name={name} />}
     </div>
@@ -164,7 +163,7 @@ function Lightbox({ images, start, onClose, name }) {
   const touch = useRef(null)
   return (
     <div className="fixed inset-0 z-[95] flex animate-fade-in flex-col bg-bone-100" role="dialog" aria-modal="true" aria-label={name}>
-      <div className="pt-safe flex items-center justify-between px-4 py-3">
+      <div className="flex items-center justify-between px-4 pb-3" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)' }}>
         <span className="text-sm font-semibold tabular-nums">{i + 1} / {images.length}</span>
         <button onClick={onClose} aria-label={t('common.close')} className="grid h-11 w-11 place-items-center rounded-full bg-white shadow-soft"><X size={20} /></button>
       </div>

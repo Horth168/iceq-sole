@@ -226,3 +226,16 @@ export function useTilt(max = 7) {
   }, [])
   return { ref, onPointerMove: onMove, onPointerLeave: onLeave }
 }
+
+// Brand logo as a one-colour mark that follows the text colour (light/dark safe).
+// Bundled marks live in /public/brands; anything else falls back to the uploaded logo image.
+const BRAND_MARKS = new Set(['nike', 'air-jordan', 'adidas', 'new-balance', 'puma', 'converse', 'vans', 'asics'])
+export function BrandMark({ brand, className = '' }) {
+  if (!brand) return null
+  if (BRAND_MARKS.has(brand.slug)) {
+    const url = `url(/brands/${brand.slug}.svg)`
+    return <span aria-hidden className={cls('block bg-current', className)}
+      style={{ WebkitMask: `${url} center / contain no-repeat`, mask: `${url} center / contain no-repeat` }} />
+  }
+  return brand.logo_url ? <Img src={brand.logo_url} alt="" className={cls('bg-transparent', className)} imgClass="object-contain" placeholder={false} /> : null
+}

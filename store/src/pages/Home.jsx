@@ -7,7 +7,7 @@ import { usePrefs } from '../context/Prefs'
 import { cls, usd } from '../lib/format'
 import { useMeta } from '../lib/meta'
 import ProductCard, { ProductCardSkeleton } from '../components/ProductCard'
-import { Img, Reveal, SectionHeader, Stars, useTilt } from '../components/ui'
+import { Img, Reveal, SectionHeader, Stars, useTilt, BrandMark } from '../components/ui'
 
 export default function Home() {
   const { t } = usePrefs()
@@ -33,12 +33,6 @@ export default function Home() {
       <Newsletter />
     </div>
   )
-}
-
-function Credit({ text, className = '' }) {
-  const { t } = usePrefs()
-  if (!text) return null
-  return <span className={cls('pointer-events-none absolute z-10 rounded-full bg-night/40 px-2.5 py-1 text-[10px] text-snow/80 backdrop-blur', className)}>{t('common.photoBy', { credit: text })}</span>
 }
 
 function Hero({ banners, loading }) {
@@ -80,7 +74,6 @@ function Hero({ banners, loading }) {
                   </div>
                 </div>
               )}
-              <Credit text={b.image_credit} className="right-4 top-4" />
             </div>
           )
         })}
@@ -110,11 +103,12 @@ function TrustBar() {
   ]
   return (
     <section className="container-x mt-6">
-      <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0 lg:grid-cols-4">
+      {/* fixed grid: 2 x 2 on phones, 4 across on desktop - never scrolls sideways */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
         {items.map(([Icon, title, sub], n) => (
-          <Reveal key={title} delay={n * 70} className="card flex min-w-[240px] snap-start items-center gap-4 p-4 transition hover:-translate-y-0.5 sm:min-w-0">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ice-50 text-ice-600"><Icon size={20} /></span>
-            <div><p className="text-sm font-semibold">{title}</p><p className="text-xs text-stone-450">{sub}</p></div>
+          <Reveal key={title} delay={n * 70} className="card flex min-w-0 flex-col gap-2.5 p-3.5 transition hover:-translate-y-0.5 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ice-50 text-ice-600 sm:h-11 sm:w-11"><Icon size={19} /></span>
+            <div className="min-w-0"><p className="text-[13px] font-semibold leading-snug sm:text-sm">{title}</p><p className="mt-0.5 text-[11.5px] leading-snug text-stone-450 sm:text-xs">{sub}</p></div>
           </Reveal>
         ))}
       </div>
@@ -154,7 +148,7 @@ function CategoryTiles({ categories }) {
               <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4 sm:p-5">
                 <div>
                   <p className="h-display text-2xl text-snow sm:text-3xl">{pick(c, 'name')}</p>
-                  <p className="mt-1 text-xs text-snow/70">{t('common.styles', { n: c.product_count })}</p>
+                  <p className="mt-1 text-xs text-snow/70">{t(c.product_count === 1 ? 'common.style' : 'common.styles', { n: c.product_count })}</p>
                 </div>
                 <span className="grid h-10 w-10 place-items-center rounded-full bg-snow text-night transition duration-500 group-hover:rotate-45"><ArrowUpRight size={18} /></span>
               </div>
@@ -179,7 +173,6 @@ function Promo({ banner: b }) {
           <p className="mt-3 text-snow/75">{pick(b, 'subtitle')}</p>
           <span className="btn-ice mt-6 w-fit">{pick(b, 'cta_label')} <ArrowRight size={18} /></span>
         </div>
-        <Credit text={b.image_credit} className="right-4 top-4" />
       </Link>
     </Reveal>
   )
@@ -224,9 +217,11 @@ function Brands({ brands }) {
       <div className="container-x mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-3xl bg-snow/10 sm:grid-cols-3 lg:grid-cols-5">
         {brands.filter((b) => b.product_count > 0).map((b, i) => (
           <Reveal key={b.id} delay={(i % 5) * 50}>
-            <Link to={`/brands/${b.slug}`} className="group flex min-h-[132px] flex-col justify-between bg-night p-5 transition duration-300 hover:bg-night-800 sm:min-h-[160px] sm:p-6">
-              <span className="flex items-center justify-between text-xs text-snow/40">{t('common.styles', { n: b.product_count })} <ArrowUpRight size={16} className="transition duration-300 group-hover:rotate-45 group-hover:text-ice-300" /></span>
-              <span className="keep-latin font-wide text-xl font-black uppercase leading-none tracking-tight transition duration-300 group-hover:translate-x-1 sm:text-2xl">{b.name}</span>
+            <Link to={`/brands/${b.slug}`} className="group relative flex min-h-[132px] flex-col justify-between overflow-hidden bg-night p-5 transition duration-300 hover:bg-night-800 active:bg-night-800 sm:min-h-[160px] sm:p-6">
+              {/* brand logo, large and faint behind the name */}
+              <BrandMark brand={b} className="pointer-events-none absolute -right-3 top-1/2 h-[68%] w-[78%] -translate-y-1/2 text-snow/[.09] transition duration-500 ease-out group-hover:scale-110 group-hover:text-ice-300/25 group-active:scale-110 group-active:text-ice-300/25" />
+              <span className="relative flex items-center justify-between text-xs text-snow/40">{t(b.product_count === 1 ? 'common.style' : 'common.styles', { n: b.product_count })} <ArrowUpRight size={16} className="transition duration-300 group-hover:rotate-45 group-hover:text-ice-300" /></span>
+              <span className="keep-latin relative font-wide text-xl font-black uppercase leading-none tracking-tight transition duration-300 group-hover:translate-x-1 sm:text-2xl">{b.name}</span>
             </Link>
           </Reveal>
         ))}
@@ -263,22 +258,29 @@ function Story() {
 
 function Testimonials({ items }) {
   const { t, pick } = usePrefs()
+  if (!items?.length) return null
+  // two copies side by side; the track slides left by exactly one copy, so the loop is seamless
+  const loop = [...items, ...items]
+  const card = (r, i) => (
+    <figure key={`${r.id}-${i}`} aria-hidden={i >= items.length || undefined}
+      className="card flex w-[290px] shrink-0 flex-col p-6 sm:w-[340px]">
+      <Quote size={26} className="text-ice-400" />
+      <Stars value={r.rating} className="mt-4" />
+      <blockquote className="mt-3 flex-1 text-[15px] leading-relaxed"><p className="font-semibold">{r.title}</p><p className="mt-1 text-ink-700">{r.body}</p></blockquote>
+      <figcaption className="mt-5 flex items-center justify-between border-t border-ink/10 pt-4 text-sm">
+        <span className="font-semibold">{r.author_name}{r.verified_purchase && <span className="ml-2 text-xs font-medium text-emerald-700">{t('home.verified')}</span>}</span>
+        {r.product && <Link to={`/product/${r.product.slug}`} tabIndex={i >= items.length ? -1 : undefined} className="truncate pl-3 text-xs text-stone-450 underline">{pick(r.product, 'name')}</Link>}
+      </figcaption>
+    </figure>
+  )
   return (
-    <section className="container-x mt-24 md:mt-32">
-      <SectionHeader eyebrow={t('home.realCustomers')} title={t('home.whatPeopleSay')} />
-      <div className="no-scrollbar -mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0 lg:grid-cols-3">
-        {items.map((r, i) => (
-          <Reveal as="figure" key={r.id} delay={i * 70} className="card flex min-w-[85%] snap-start flex-col p-6 transition hover:-translate-y-1 sm:min-w-0">
-            <Quote size={26} className="text-ice-400" />
-            <Stars value={r.rating} className="mt-4" />
-            <blockquote className="mt-3 flex-1 text-[15px] leading-relaxed"><p className="font-semibold">{r.title}</p><p className="mt-1 text-ink-700">{r.body}</p></blockquote>
-            <figcaption className="mt-5 flex items-center justify-between border-t border-ink/10 pt-4 text-sm">
-              <span className="font-semibold">{r.author_name}{r.verified_purchase && <span className="ml-2 text-xs font-medium text-emerald-700">{t('home.verified')}</span>}</span>
-              {r.product && <Link to={`/product/${r.product.slug}`} className="truncate pl-3 text-xs text-stone-450 underline">{pick(r.product, 'name')}</Link>}
-            </figcaption>
-          </Reveal>
-        ))}
-      </div>
+    <section className="mt-24 md:mt-32">
+      <div className="container-x"><SectionHeader eyebrow={t('home.realCustomers')} title={t('home.whatPeopleSay')} /></div>
+      <Reveal className="reviews-marquee mt-2">
+        <div className="reviews-track flex w-max gap-4 py-2" style={{ '--marquee-duration': `${Math.max(30, items.length * 9)}s` }}>
+          {loop.map(card)}
+        </div>
+      </Reveal>
     </section>
   )
 }

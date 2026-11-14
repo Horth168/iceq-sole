@@ -37,6 +37,8 @@ export default function Layout() {
   return (
     <div className="flex min-h-dvh flex-col">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-full focus:bg-white focus:px-4 focus:py-2">{t('common.skip')}</a>
+      {/* iPhone home-screen app: keeps the clock / Dynamic Island area solid, content scrolls under it */}
+      <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-[60] bg-night" style={{ height: 'env(safe-area-inset-top)' }} />
       {!minimal && <Announcement />}
       <Header onSearch={() => setSearch(true)} onMenu={() => setMenu(true)} minimal={minimal} taxonomy={taxonomy} />
       <main id="main" key={pathname} className={cls('flex-1 animate-page-in', !minimal && 'pb-[calc(68px+env(safe-area-inset-bottom))] md:pb-0')}>
@@ -57,7 +59,7 @@ function Announcement() {
   const free = settings?.delivery?.free_shipping_threshold
   const msgs = [free ? t('announce.freeOver', { amount: usd(free) }) : t('announce.fast'), t('announce.pay'), t('announce.pp')]
   return (
-    <div className="pt-safe overflow-hidden bg-night py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-snow/85">
+    <div className="overflow-hidden bg-night pb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-snow/85" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.5rem)' }}>
       <div className="flex w-max animate-marquee gap-16 whitespace-nowrap">
         {[...msgs, ...msgs, ...msgs, ...msgs].map((m, i) => (
           <span key={i} className="flex items-center gap-16">{m}<span className="text-ice-300">◆</span></span>
@@ -110,7 +112,7 @@ function Header({ onSearch, onMenu, minimal, taxonomy }) {
   useEffect(() => setMega(false), [pathname])
 
   return (
-    <header className={cls('sticky top-0 z-50 border-b transition-colors duration-300', scrolled || mega ? 'border-ink/10 bg-bone/85 backdrop-blur-xl' : 'border-transparent bg-bone')}
+    <header style={{ top: 'env(safe-area-inset-top)' }} className={cls('sticky z-50 border-b transition-colors duration-300', scrolled || mega ? 'border-ink/10 bg-bone/85 backdrop-blur-xl' : 'border-transparent bg-bone')}
       onMouseLeave={() => setMega(false)}>
       <div className="container-x flex h-16 items-center gap-2 md:h-[72px]">
         {!minimal && <button onClick={onMenu} aria-label={t('nav.openMenu')} className="-ml-2 grid h-11 w-11 place-items-center rounded-full hover:bg-ink/5 lg:hidden"><Menu size={22} /></button>}
