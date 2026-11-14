@@ -214,7 +214,8 @@ function Brands({ brands }) {
         <p className="eyebrow !text-ice-300">{t('home.lineup')}</p>
         <h2 className="h-display mt-2 text-[34px] sm:text-5xl lg:text-6xl">{t('nav.shopByBrand')}</h2>
       </Reveal>
-      <div className="container-x mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-3xl bg-snow/10 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="container-x mt-10">
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-3xl bg-snow/10 ring-1 ring-snow/10 lg:grid-cols-5">
         {brands.filter((b) => b.product_count > 0).map((b, i) => (
           <Reveal key={b.id} delay={(i % 5) * 50}>
             <Link to={`/brands/${b.slug}`} className="group relative flex min-h-[132px] flex-col justify-between overflow-hidden bg-night p-5 transition duration-300 hover:bg-night-800 active:bg-night-800 sm:min-h-[160px] sm:p-6">
@@ -225,6 +226,7 @@ function Brands({ brands }) {
             </Link>
           </Reveal>
         ))}
+      </div>
       </div>
     </section>
   )

@@ -229,7 +229,7 @@ export function useTilt(max = 7) {
 
 // Brand logo as a one-colour mark that follows the text colour (light/dark safe).
 // Bundled marks live in /public/brands; anything else falls back to the uploaded logo image.
-const BRAND_MARKS = new Set(['nike', 'air-jordan', 'adidas', 'new-balance', 'puma', 'converse', 'vans', 'asics'])
+const BRAND_MARKS = new Set(['nike', 'air-jordan', 'adidas', 'new-balance', 'puma', 'converse', 'vans', 'asics', 'reebok', 'li-ning'])
 export function BrandMark({ brand, className = '' }) {
   if (!brand) return null
   if (BRAND_MARKS.has(brand.slug)) {

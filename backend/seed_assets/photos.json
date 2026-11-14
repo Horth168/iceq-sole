@@ -477,6 +477,42 @@
    "credit": "Terrance Barksdale",
    "site": "Pexels",
    "file": "photos/pexels-15677286.jpg"
+  },
+  {
+   "target": "reebok-club-c-85",
+   "color": "White",
+   "src": "https://images.pexels.com/photos/10050106/pexels-photo-10050106.jpeg",
+   "page": "https://www.pexels.com/photo/a-person-holding-a-sneaker-shoes-10050106/",
+   "credit": "felipepelaquim",
+   "site": "Pexels",
+   "file": "photos/pexels-10050106.jpg"
+  },
+  {
+   "target": "reebok-club-c-85",
+   "color": "White",
+   "src": "https://images.pexels.com/photos/10050109/pexels-photo-10050109.jpeg",
+   "page": "https://www.pexels.com/photo/hand-of-a-person-holding-a-white-rubber-shoe-10050109/",
+   "credit": "felipepelaquim",
+   "site": "Pexels",
+   "file": "photos/pexels-10050109.jpg"
+  },
+  {
+   "target": "li-ning-knit-runner",
+   "color": "Grey",
+   "src": "https://images.pexels.com/photos/27361691/pexels-photo-27361691/free-photo-of-gray-shoe-on-gray-background.jpeg",
+   "page": "https://www.pexels.com/photo/gray-shoe-on-gray-background-27361691/",
+   "credit": "Andrey Matveev",
+   "site": "Pexels",
+   "file": "photos/pexels-27361691.jpg"
+  },
+  {
+   "target": "li-ning-knit-runner",
+   "color": "Grey",
+   "src": "https://images.pexels.com/photos/28381500/pexels-photo-28381500/free-photo-of-the-women-s-running-shoe-is-made-of-grey-and-white.jpeg",
+   "page": "https://www.pexels.com/photo/the-women-s-running-shoe-is-made-of-grey-and-white-28381500/",
+   "credit": "Andrey Matveev",
+   "site": "Pexels",
+   "file": "photos/pexels-28381500.jpg"
   }
  ]
 }

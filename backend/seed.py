@@ -37,7 +37,7 @@ PHOTOS = json.loads((ASSETS / "photos.json").read_text(encoding="utf-8"))["photo
 rng = random.Random(7)
 
 # Bump when sync_catalog() learns something new; it runs once per version on existing databases.
-SYNC_KEY, SYNC_VERSION = "seed_sync", 3
+SYNC_KEY, SYNC_VERSION = "seed_sync", 4
 
 BRANDS = [
     ("Nike", "Performance and street icons from Beaverton."),
@@ -48,6 +48,8 @@ BRANDS = [
     ("Converse", "The canvas icon since forever."),
     ("Vans", "Off the wall skate classics."),
     ("Asics", "Japanese running technology turned street staple."),
+    ("Reebok", "British-born court and fitness classics since 1958."),
+    ("Li-Ning", "China's own sportswear icon, from the Olympic podium to the street."),
 ]
 RETIRED_BRANDS = ["IceQ Originals"]  # earlier demo label shown with generated imagery - hidden, never deleted
 CATEGORIES = [
@@ -127,6 +129,12 @@ P = [
     ("Gel-Kayano 14", "Asics", "Running", "unisex", 150, None, "nt", ["White", "Grey"],
      "Late-2000s running tech DNA, reworked as a sought-after lifestyle runner.",
      "DNA បច្ចេកវិទ្យាស្បែកជើងរត់ពីចុងទសវត្សរ៍ ២០០០ ដែលត្រូវបានរចនាឡើងវិញជាស្បែកជើងប្រចាំថ្ងៃដ៏ពេញនិយម។"),
+    ("Club C 85", "Reebok", "Lifestyle", "unisex", 80, None, "n", ["White"],
+     "The clean, low-profile court classic from 1985: soft leather-look upper, perforated toe and a cushioned cupsole.",
+     "ស្បែកជើងទីលានបុរាណឆ្នាំ ១៩៨៥ រាងទាប ស្អាតរលូន៖ ផ្នែកខាងលើបែបស្បែកទន់ ក្បាលមានរន្ធខ្យល់ និងបាតទ្រទ្រង់ផាសុកភាព។"),
+    ("Knit Runner", "Li-Ning", "Running", "unisex", 75, None, "n", ["Grey"],
+     "A lightweight everyday running shoe with a breathable knit upper and a soft, cushioned midsole.",
+     "ស្បែកជើងរត់ប្រចាំថ្ងៃស្រាល ជាមួយផ្នែកខាងលើត្បាញដែលខ្យល់ចេញចូលបានល្អ និងបាតកណ្តាលទន់ផាសុកភាព។"),
 ]
 FLAG = {"f": "is_featured", "b": "is_best_seller", "n": "is_new_arrival", "t": "is_trending"}
 LEGACY_SLUGS = {"air-jordan-1-low": ["air-jordan-1-mid"]}  # renamed: the verified photos show the Low
@@ -310,7 +318,7 @@ def sync_catalog(db, force: bool = False) -> None:
     # v3: brand logos (one-colour SVG marks: Simple Icons, CC0; Wikimedia Commons, PD-textlogo) for
     # brands that have no logo yet - an admin's own upload is never replaced
     logos = 0
-    if done < 3:
+    if done < 4:
         for b in brands.values():
             svg = ASSETS / "brands" / f"{b.slug}.svg"
             if svg.exists() and not b.logo_url:
