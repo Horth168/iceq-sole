@@ -73,9 +73,10 @@ async def _run() -> None:
     chat_id = int(settings.PAYWAY_CHAT_ID.strip())
     want = settings.PAYWAY_BOT_USERNAME.lstrip("@").lower()
     try:
-        session = StringSession(settings.TG_LISTENER_SESSION.strip())
-        api_id = int(settings.TG_LISTENER_API_ID)
-    except ValueError:
+        # copying a long key out of a terminal often adds line breaks or spaces: drop all whitespace
+        session = StringSession("".join(settings.TG_LISTENER_SESSION.split()))
+        api_id = int(str(settings.TG_LISTENER_API_ID).strip())
+    except Exception:  # noqa: BLE001 - ValueError, binascii.Error, struct.error: a damaged key
         STATUS.update(state="error", error="TG_LISTENER_SESSION or TG_LISTENER_API_ID is not valid - copy them again from telegram_login.py")
         log.error("Listener: %s", STATUS["error"])
         return
@@ -125,8 +126,9 @@ def _thread_main() -> None:
         try:
             asyncio.run(_run())
         except Exception as e:  # noqa: BLE001
-            STATUS.update(state="reconnecting", error=e.__class__.__name__)
-            log.warning("Listener stopped (%s), restarting in 30 s", e.__class__.__name__)
+            detail = f"{e.__class__.__module__}.{e.__class__.__name__}: {str(e)[:200]}"  # never contains the session key
+            STATUS.update(state="reconnecting", error=detail)
+            log.warning("Listener stopped (%s), restarting in 30 s", detail)
         if STATUS.get("state") == "error":
             return  # bad session: needs a new one, retrying would not help
         time.sleep(30)
