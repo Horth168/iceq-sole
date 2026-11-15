@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ChevronRight, PackageSearch } from 'lucide-react'
 import { myOrders, saveMyOrder } from '../lib/myOrders'
 import { dateTime, PAYMENT_STATUS, STATUS, usd2 } from '../lib/format'
@@ -11,7 +11,8 @@ import { usePrefs } from '../context/Prefs'
 
 export default function Track() {
   const { t } = usePrefs()
-  const [form, setForm] = useState({ order_number: '', contact: '' })
+  const [params] = useSearchParams()
+  const [form, setForm] = useState({ order_number: (params.get('order') || '').toUpperCase().slice(0, 30), contact: '' })
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
   const navigate = useNavigate()

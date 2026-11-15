@@ -10,8 +10,8 @@ import { cls, usd, sizeLabel } from '../lib/format'
 import Logo from './Logo'
 import MobileMenu from './MobileMenu'
 import ErrorBoundary from './ErrorBoundary'
+import SupportChat from './SupportChat'
 import HumanCheck, { useHuman } from './HumanCheck'
-import { TelegramAppButton } from './TelegramApp'
 import { Drawer, Img, Price, QtyStepper, Spinner } from './ui'
 
 const NAV = [
@@ -58,12 +58,13 @@ export default function Layout() {
           so reserve that space here or the sticky header slides over the top of the page */}
       {!minimal ? <Announcement /> : <div aria-hidden style={{ height: 'env(safe-area-inset-top)' }} />}
       <Header onSearch={() => setSearch(true)} onMenu={() => setMenu(true)} minimal={minimal} taxonomy={taxonomy} />
-      <main id="main" key={pathname} className={cls('flex-1 animate-page-in', !minimal && 'pb-[calc(68px+env(safe-area-inset-bottom))] md:pb-0')}>
+      <main id="main" key={pathname} className="flex-1 animate-page-in">
         {/* main is keyed by pathname, so leaving a broken page resets the boundary */}
         <ErrorBoundary><Outlet /></ErrorBoundary>
       </main>
       {!minimal && <Footer />}
       {!minimal && <MobileTabBar onSearch={() => setSearch(true)} />}
+      <SupportChat />
       <SearchOverlay open={search} onClose={() => setSearch(false)} />
       <MobileMenu open={menu} onClose={() => setMenu(false)} taxonomy={taxonomy} />
       <CartDrawer />
@@ -411,7 +412,7 @@ function Footer() {
   }
   const socials = [['facebook', Facebook], ['instagram', Instagram], ['tiktok', Music2], ['telegram', Send]].filter(([k]) => social[k])
   return (
-    <footer className="mt-20 bg-night text-snow">
+    <footer className="mt-20 bg-night pb-[calc(68px+env(safe-area-inset-bottom))] text-snow md:pb-0">
       <div className="container-x grid gap-12 py-16 md:grid-cols-12">
         <div className="md:col-span-5">
           <Logo light />
@@ -445,7 +446,6 @@ function Footer() {
               ))}
             </div>
           )}
-          <TelegramAppButton compact className="mt-5" />
         </div>
       </div>
       <div className="border-t border-snow/10">

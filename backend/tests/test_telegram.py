@@ -146,6 +146,8 @@ def test_customer_can_get_new_qr_after_not_received(client, db, catalog, sent, m
     mails = []
     from app.services import email as email_svc
     monkeypatch.setattr(email_svc, "send_payment_update", lambda o, kind, link: mails.append((kind, o.order_number, link)))
+    # a confirmed payment now sends the PAID receipt instead of the plain note
+    monkeypatch.setattr(email_svc, "send_receipt", lambda r, kind: mails.append((kind, r["num"], r["link"])))
     monkeypatch.setattr(email_svc.threading if hasattr(email_svc, "threading") else __import__("threading"), "Thread", _NowThread)
     r = _order(client, catalog)
     oid, num, t = r["order"]["id"], r["order"]["order_number"], r["access_token"]

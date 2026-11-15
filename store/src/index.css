@@ -130,3 +130,8 @@
   .reveal { opacity: 1; transform: none; }
   .tilt { transform: none !important; }
 }
+
+/* Telegram call-to-action: a soft light sweep every few seconds (off for reduced motion) */
+.tg-shine { background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,.38) 50%, transparent 100%); transform: skewX(-18deg); animation: tg-shine 4.2s ease-in-out 1.2s infinite; }
+@keyframes tg-shine { 0% { left: -60%; } 38%, 100% { left: 130%; } }
+@media (prefers-reduced-motion: reduce) { .tg-shine { animation: none; display: none; } }

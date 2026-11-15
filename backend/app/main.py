@@ -17,7 +17,7 @@ from sqlalchemy import text
 from app.config import settings
 from app.database import engine
 from app.limiter import limiter
-from app.routers import (account, admin_catalog, admin_dashboard, admin_marketing, admin_orders, admin_settings,
+from app.routers import (account, admin_backup, admin_catalog, admin_dashboard, admin_marketing, admin_orders, admin_settings,
                          auth, cart, catalog, orders, telegram)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -43,6 +43,7 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Cart-Token", "Accept-Language", "X-Human-Token"],
+    expose_headers=["Content-Disposition"],  # backup downloads keep their file name
     max_age=600,
 )
 
@@ -102,7 +103,7 @@ async def unhandled(request: Request, exc: Exception):
 
 # ------------------------------------------------------------- routes
 for r in (auth, account, catalog, cart, orders, admin_dashboard, admin_catalog, admin_orders, admin_marketing,
-          admin_settings, telegram):
+          admin_settings, admin_backup, telegram):
     app.include_router(r.router)
 
 

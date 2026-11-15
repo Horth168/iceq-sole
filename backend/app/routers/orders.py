@@ -110,6 +110,8 @@ def checkout(request: Request, body: CheckoutIn, db: Session = Depends(get_db),
         cart.items.clear()
         cart.discount_code = None
         db.commit()
+        from app.services.email import send_receipt_later
+        send_receipt_later(order, "placed")
     except IntegrityError:
         db.rollback()
         existing = _existing_by_key(db, body.idempotency_key)

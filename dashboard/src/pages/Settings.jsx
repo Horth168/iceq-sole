@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, CheckCircle2, Plus, Upload } from 'lucide-react'
-import { api, assetUrl, upload } from '../lib/api'
+import { AlertTriangle, CheckCircle2, DatabaseBackup, FileJson, FileSpreadsheet, Plus, ShieldCheck, Upload } from 'lucide-react'
+import { api, assetUrl, download, upload } from '../lib/api'
 import { useAuth } from '../components/Layout'
 import { cls, date } from '../lib/format'
 import { Card, Field, Modal, PageHeader, Pill, Spinner, Toggle, useToast } from '../components/ui'
 import { Rich, usePrefs } from '../context/Prefs'
 import BankQrCard from '../components/BankQrCard'
 
-const TABS = ['store', 'delivery', 'payments', 'regional', 'staff', 'system']
+const TABS = ['store', 'delivery', 'payments', 'regional', 'staff', 'backup', 'system']
 
 export default function Settings() {
   const { t } = usePrefs()
@@ -131,6 +131,8 @@ export default function Settings() {
 
       {tab === 'staff' && <Staff disabled={ro} />}
 
+      {tab === 'backup' && <Backup disabled={ro} />}
+
       {tab === 'system' && (
         <Card title={t('settings.system')}>
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
@@ -213,5 +215,44 @@ function Staff({ disabled }) {
         )}
       </Modal>
     </Card>
+  )
+}
+
+
+function Backup({ disabled }) {
+  const { t } = usePrefs()
+  const toast = useToast()
+  const [busy, setBusy] = useState('')
+  const get = async (kind) => {
+    setBusy(kind)
+    try { toast.success(t('backup.saved', { name: await download(`/api/admin/backup/${kind}`) })) } catch (e) { toast.error(e.message) } finally { setBusy('') }
+  }
+  const options = [
+    ['xlsx', FileSpreadsheet, t('backup.excel'), t('backup.excelText')],
+    ['json', FileJson, t('backup.json'), t('backup.jsonText')],
+  ]
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <Card title={t('backup.title')}>
+        <p className="mb-5 text-sm text-stone-450">{t('backup.intro')}</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {options.map(([kind, Icon, title, text]) => (
+            <button key={kind} type="button" disabled={disabled || !!busy} onClick={() => get(kind)}
+              className="group flex items-start gap-4 rounded-2xl border border-ink/10 bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-ink/30 hover:shadow-lift disabled:pointer-events-none disabled:opacity-50">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ink text-white">{busy === kind ? <Spinner className="h-4 w-4" /> : <Icon size={20} />}</span>
+              <span><span className="block font-semibold">{title}</span><span className="mt-1 block text-sm text-stone-450">{text}</span></span>
+            </button>
+          ))}
+        </div>
+        {disabled && <p className="mt-4 text-sm text-amber-700">{t('backup.adminOnly')}</p>}
+      </Card>
+      <Card title={t('backup.whatTitle')}>
+        <ul className="space-y-3 text-sm">
+          <li className="flex gap-2.5"><DatabaseBackup size={17} className="mt-0.5 shrink-0 text-ice-600" />{t('backup.what1')}</li>
+          <li className="flex gap-2.5"><ShieldCheck size={17} className="mt-0.5 shrink-0 text-emerald-600" />{t('backup.what2')}</li>
+          <li className="flex gap-2.5"><CheckCircle2 size={17} className="mt-0.5 shrink-0 text-stone-450" />{t('backup.what3')}</li>
+        </ul>
+      </Card>
+    </div>
   )
 }

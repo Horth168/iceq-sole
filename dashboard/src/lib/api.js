@@ -51,6 +51,24 @@ export async function api(path, { method = 'GET', body, form, query, retry = tru
   return data
 }
 
+// Download a file that needs the signed-in user (backups): fetch with the token, then save it
+export async function download(path, retry = true) {
+  const res = await fetch(`${BASE}${path}`, { headers: tokens.access ? { Authorization: `Bearer ${tokens.access}` } : {} })
+  if (res.status === 401 && retry && tokens.refresh) { await refresh(); return download(path, false) }
+  if (!res.ok) {
+    const data = await res.json().catch(() => null)
+    throw new ApiError(data?.detail || `Download failed (${res.status})`, res.status, data)
+  }
+  const ext = path.split('/').pop()
+  const name = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') || '')?.[1]
+    || `iceq-sole-backup_${new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-')}.${ext}`
+  const url = URL.createObjectURL(await res.blob())
+  const a = Object.assign(document.createElement('a'), { href: url, download: name })
+  document.body.appendChild(a); a.click(); a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 4000)
+  return name
+}
+
 // Multipart upload with progress
 export function upload(path, formData, onProgress, method = 'POST') {
   return new Promise((resolve, reject) => {

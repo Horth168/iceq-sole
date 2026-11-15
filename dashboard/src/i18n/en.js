@@ -98,8 +98,12 @@ export default {
     timelineNote: 'Note for the timeline (optional)',
   },
   invoice: {
-    print: 'Print', title: 'Invoice', billTo: 'Bill / ship to', payment: 'Payment', item: 'Item', sku: 'SKU', qty: 'Qty', price: 'Price',
-    total: 'Total', khr: 'KHR (rate {rate})', thanks: 'Thank you for shopping with {store}. Exchanges on unworn pairs within 7 days with this invoice.',
+    print: 'Print / Save as PDF', title: 'Invoice', billTo: 'Billed to', payment: 'Payment', item: 'Item', sku: 'SKU', qty: 'Qty', price: 'Price',
+    total: 'Total', khr: 'In riel (rate {rate})', thanks: 'Thank you for shopping with {store}. Exchanges on unworn pairs within 7 days with this invoice.',
+    receipt: 'Receipt', invoiceNo: 'Invoice no.', tracking: 'Tracking code', date: 'Date', status: 'Status', paid: 'Paid', shipTo: 'Deliver to',
+    paidOn: 'Paid {date}', scanTrack: 'Track this order', scanTrackText: 'Scan, or enter {order} at Track an order.', free: 'Free', tax: 'Tax',
+    thanksShort: 'Thank you for shopping with {store}.', policy: 'Unworn items in original packaging can be exchanged within 7 days with this receipt.',
+    pdfHint: 'Tip: choose "Save as PDF" in the print window.',
   },
   inventory: {
     title: 'Inventory', subtitle: 'Stock per colour and size. Pending orders reserve pairs so you never oversell.', onShelf: 'Pairs on shelf',
@@ -149,9 +153,17 @@ export default {
     featured: 'Featured', on: '{author} on <b>{product}</b> · {date}', verified: ' · verified buyer', unpublish: 'Unpublish', approve: 'Approve',
     feature: 'Feature', unfeature: 'Unfeature', confirmDelete: 'Delete review?',
   },
+  backup: {
+    title: 'Back up your data', intro: 'Download a full copy of the store: products, stock, orders, customers, discounts, reviews and settings. Keep it somewhere safe, for example Google Drive.',
+    excel: 'Excel (.xlsx)', excelText: 'One sheet per table. Open in Excel or Google Sheets.',
+    json: 'JSON (.json)', jsonText: 'Exact copy of every value, for restoring or moving the store.',
+    saved: 'Saved {name}', adminOnly: 'Only admins can download backups.',
+    whatTitle: "What's inside", what1: 'Every table of the store database, including order history and stock movements.',
+    what2: 'Passwords and sign-in tokens are never included.', what3: 'Product photos stay in your image storage; the backup lists their links.',
+  },
   settings: {
     title: 'Settings', readOnly: 'Read-only — only admins can change settings.', live: 'Changes apply to the storefront immediately.', saved: 'Settings saved',
-    tabs: { store: 'Store', delivery: 'Delivery', payments: 'Payments', regional: 'Currency & tax', staff: 'Staff', system: 'System' },
+    tabs: { store: 'Store', delivery: 'Delivery', payments: 'Payments', regional: 'Currency & tax', staff: 'Staff', system: 'System', backup: 'Backup' },
     storeInfo: 'Store information', fields: { name: 'Store name', tagline: 'Tagline', email: 'Contact email', phone: 'Phone', address: 'Address', opening_hours: 'Opening hours' },
     socialLink: '{name} link', logo: 'Store logo (used on invoices)', uploadLogo: 'Upload logo',
     deliveryFees: 'Delivery fees (USD)', ppFee: 'Phnom Penh fee', provFee: 'Province fee', freeOver: 'Free delivery over', freeHint: '0 = never free',

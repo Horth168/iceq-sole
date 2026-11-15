@@ -32,7 +32,7 @@ export function TelegramAppSection() {
                 </li>
               ))}
             </ul>
-            <TelegramAppButton className="mt-8" />
+            <TelegramAppButton className="mt-8 w-full sm:w-auto" />
           </div>
           <div className="hidden flex-col items-center lg:flex">
             <div className="rounded-3xl bg-white p-4 shadow-lift">
@@ -52,10 +52,14 @@ export function TelegramAppButton({ className = '', compact = false }) {
   return (
     <a href={TELEGRAM_APP_URL} target="_blank" rel="noreferrer"
       onClick={(e) => { if (window.Telegram?.WebApp?.openTelegramLink) { e.preventDefault(); openTelegramApp() } }}
-      className={cls('inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-white transition hover:brightness-105 active:scale-[.97]',
-        compact ? 'min-h-[42px] px-5 text-sm' : 'min-h-[52px] px-7', className)}
-      style={{ background: BLUE }}>
-      <Send size={compact ? 16 : 18} /> {t('tg.open')} <ArrowUpRight size={compact ? 15 : 17} className="opacity-80" />
+      className={cls('tg-cta group relative inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-full font-semibold text-white',
+        'shadow-[0_10px_30px_-12px_rgba(42,171,238,.75)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-12px_rgba(42,171,238,.9)] active:translate-y-0 active:scale-[.98]',
+        compact ? 'min-h-[44px] px-5 text-sm' : 'min-h-[56px] px-8 text-[15px]', className)}
+      style={{ background: `linear-gradient(135deg, #37B6F2 0%, ${BLUE} 55%, #1E96D6 100%)` }}>
+      <span aria-hidden className="tg-shine pointer-events-none absolute inset-y-0 -left-1/2 w-1/2" />
+      <Send size={compact ? 16 : 18} className="relative transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+      <span className="relative">{t('tg.open')}</span>
+      <ArrowUpRight size={compact ? 15 : 17} className="relative opacity-80 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
     </a>
   )
 }

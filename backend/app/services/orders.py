@@ -116,6 +116,12 @@ def mark_paid(db: Session, order: Order, *, source: str, user_id: int | None = N
         change_status(db, order, S.confirmed, note="Auto-confirmed after verified payment", user_id=user_id)
 
 
+def invoice_number(order: Order) -> str:
+    """INV-261115-JANVF for order IQ261115-JANVF: stable, so the printed and emailed receipts match."""
+    n = order.order_number or ""
+    return "INV-" + (n[2:] if n.startswith("IQ") else n)
+
+
 def latest_payment(order: Order) -> Payment | None:
     return order.payments[-1] if order.payments else None
 
