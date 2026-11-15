@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+from decimal import Decimal
 from datetime import timedelta
 
 from fastapi import HTTPException
@@ -128,10 +129,13 @@ def latest_payment(order: Order) -> Payment | None:
 
 def create_khqr_payment(db: Session, order: Order) -> Payment:
     pay_cfg = get_setting(db, "payments")
-    payment = Payment(method=PaymentMethod.khqr, amount=order.total, currency="USD", status=PaymentStatus.unpaid)
+    cur = "KHR" if pay_cfg.get("khqr_currency") == "KHR" else "USD"
+    # riel QRs are rounded to 100 riel, like the totals shown to the customer
+    amount = order.total if cur == "USD" else Decimal(int(round(float(order.total) * order.khr_rate / 100)) * 100)
+    payment = Payment(method=PaymentMethod.khqr, amount=amount, currency=cur, status=PaymentStatus.unpaid)
     template = (pay_cfg.get("khqr_template") or "").strip()
     if template:
-        payload = khqr.build_from_template(template, amount=order.total, currency="USD",
+        payload = khqr.build_from_template(template, amount=amount, currency=cur,
                                            bill_number=order.order_number,  # same fields as the tested ABA QR
                                            expiry_minutes=settings.KHQR_EXPIRY_MINUTES)
         payment.khqr_payload = payload
@@ -179,6 +183,9 @@ def payment_instructions(db: Session, order: Order) -> dict:
             expires_at=_iso_utc(p.expires_at) if p and p.expires_at else None,
             static_qr_url=cfg.get("khqr_static_image_url") or None,
             merchant_name=cfg.get("khqr_merchant_name"),
+            # the QR's own amount/currency (riel QRs when Settings > Payments > QR currency is KHR)
+            amount=float(p.amount) if p and p.khqr_payload else float(order.total),
+            currency=(p.currency if p and p.khqr_payload else "USD"),
             auto_verify=settings.bakong_enabled and bool(p and p.khqr_md5),
         )
     if order.payment_method in (PaymentMethod.bank_transfer, PaymentMethod.khqr):

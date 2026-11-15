@@ -253,7 +253,7 @@ function PaymentBox({ order, pay, token, onUpdate }) {
       <div className="grid gap-6 p-5 sm:p-6 md:grid-cols-[auto_1fr]">
         {isQr && (qr || pay.static_qr_url) && (
           <div className="mx-auto w-full max-w-[280px]">
-            <KhqrCard value={qr} imageUrl={!qr ? assetUrl(pay.static_qr_url) : undefined} name={pay.merchant_name} amount={pay.amount} dim={expired || failed}>
+            <KhqrCard value={qr} imageUrl={!qr ? assetUrl(pay.static_qr_url) : undefined} name={pay.merchant_name} amount={pay.amount} currency={pay.currency || 'USD'} dim={expired || failed}>
               {(expired || failed) && qr && (
                 <div className="absolute inset-0 grid place-items-center">
                   <button type="button" onClick={renew} disabled={renewing} className="btn-primary !min-h-[44px] shadow-lift">{renewing ? <Spinner /> : <RefreshCw size={16} />} {t('order.newQr')}</button>

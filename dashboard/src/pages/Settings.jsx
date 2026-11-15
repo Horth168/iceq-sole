@@ -75,6 +75,14 @@ export default function Settings() {
               <Toggle disabled={ro} checked={pay.bank_transfer_enabled} onChange={(v) => up('payments', 'bank_transfer_enabled', v)} label={t('settings.bank')} />
               <Toggle disabled={ro} checked={pay.cod_enabled} onChange={(v) => up('payments', 'cod_enabled', v)} label={t('settings.cod')} />
             </div>
+            <Field label={t('settings.qrCurrency')} hint={t('settings.qrCurrencyHint')} className="mt-5">
+              <div className="flex gap-2">
+                {['USD', 'KHR'].map((c) => (
+                  <button key={c} type="button" disabled={ro} onClick={() => up('payments', 'khqr_currency', c)}
+                    className={cls('chip', (pay.khqr_currency || 'USD') === c && 'chip-active')}>{c === 'USD' ? t('settings.qrUsd') : t('settings.qrKhr')}</button>
+                ))}
+              </div>
+            </Field>
             <div className="mt-5 space-y-2 rounded-2xl bg-bone-100 p-4 text-sm">
               {pay.khqr_template ? <Status ok yes={t('settings.bankQrStatus')} /> : <Status ok={s.system.bakong_auto_verify} yes={t('settings.bakongOk', { id: s.system.bakong_account_id })}
                 no={s.system.bakong_account_id ? t('settings.bakongNoToken', { id: s.system.bakong_account_id }) : t('settings.bakongNone')} />}

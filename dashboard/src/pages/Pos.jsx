@@ -328,7 +328,7 @@ export default function Pos() {
           <div className="text-center">
             <div className="mx-auto w-[260px] overflow-hidden rounded-[20px] bg-white shadow-soft ring-1 ring-black/5" style={{ color: '#000' }}>
               <div className="grid h-[52px] place-items-center" style={{ background: '#E21A2C' }}><img src="/khqr-logo-white.png" alt="KHQR" className="h-[19px]" onError={(e) => { e.currentTarget.replaceWith(Object.assign(document.createElement('b'), { textContent: 'KHQR', style: 'color:#fff;letter-spacing:.2em' })) }} /></div>
-              <div className="px-6 pt-4 text-left"><p className="text-xs" style={{ color: 'rgba(0,0,0,.7)' }}>{waiting.merchant_name || 'IceQ Sole'}</p><p className="text-2xl font-black tabular-nums">{Number(waiting.order.total).toFixed(2)} <span className="text-xs font-semibold" style={{ color: 'rgba(0,0,0,.55)' }}>USD</span></p></div>
+              <div className="px-6 pt-4 text-left"><p className="text-xs" style={{ color: 'rgba(0,0,0,.7)' }}>{waiting.merchant_name || 'IceQ Sole'}</p><p className="text-2xl font-black tabular-nums">{waiting.payment.currency === 'KHR' ? Math.round(waiting.payment.amount).toLocaleString('en-US') : Number(waiting.payment.amount ?? waiting.order.total).toFixed(2)} <span className="text-xs font-semibold" style={{ color: 'rgba(0,0,0,.55)' }}>{waiting.payment.currency || 'USD'}</span></p></div>
               <div className="mx-5 my-3 border-t border-dashed" style={{ borderColor: 'rgba(0,0,0,.18)' }} />
               <div className="px-6 pb-6"><QRCodeSVG value={waiting.payment.khqr} size={208} level="Q" className="h-auto w-full" /></div>
             </div>

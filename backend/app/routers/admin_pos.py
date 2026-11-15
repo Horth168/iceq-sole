@@ -21,6 +21,7 @@ def _sale(db: Session, order: Order) -> dict:
     pay = svc.latest_payment(order)
     return {"order": order_out(order, admin=True),
             "payment": {"method": pay.method.value, "status": pay.status.value, "khqr": pay.khqr_payload,
+                        "amount": float(pay.amount), "currency": pay.currency,
                         "expires_at": pay.expires_at.isoformat() if pay.expires_at else None,
                         "cash": pay.gateway_response if pay.method == PaymentMethod.cash else None} if pay else None,
             "merchant_name": svc.payment_instructions(db, order).get("merchant_name") if pay and pay.khqr_payload else None}

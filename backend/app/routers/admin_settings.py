@@ -46,6 +46,8 @@ def write_settings(key: str, value: dict, db: Session = Depends(get_db), _: User
             raise HTTPException(400, "KHR rate looks wrong (expected 1000–10000)")
     if key == "tax" and "rate_percent" in value and not 0 <= float(value["rate_percent"]) <= 30:
         raise HTTPException(400, "Tax rate must be between 0 and 30%")
+    if key == "payments" and value.get("khqr_currency") not in (None, "USD", "KHR"):
+        raise HTTPException(400, "QR currency must be USD or KHR")
     if key == "payments" and (value.get("khqr_template") or "").strip():
         try:
             khqr.describe_template(value["khqr_template"])

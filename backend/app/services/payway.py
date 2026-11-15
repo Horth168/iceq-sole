@@ -89,18 +89,24 @@ def from_payway(msg: dict) -> bool:
 
 
 # ---------------------------------------------------------------- matching
+ORDER_NO = re.compile(r"\bIQ\d{6}-[A-Z0-9]{5}\b")
+
+
 def candidates(db: Session, notice: Notice, received_at: datetime) -> list[tuple[Order, Payment]]:
-    """Unpaid KHQR orders whose current QR asks for exactly this amount and was live at received_at."""
-    if notice.currency != "USD":
-        return []
+    """Unpaid KHQR orders whose current QR asks for exactly this amount (and currency) and was live at
+    received_at. If ABA's message carries our order number (the QR's bill number), only that order."""
+    numbers = set(ORDER_NO.findall(notice.text or ""))
     rows = (db.query(Order, Payment).join(Payment, Payment.order_id == Order.id)
             .filter(Order.payment_method == PaymentMethod.khqr,
                     Order.payment_status.in_([PaymentStatus.unpaid, PaymentStatus.submitted]),
                     Order.status.notin_([OrderStatus.cancelled, OrderStatus.refunded]),
                     Payment.method == PaymentMethod.khqr,
                     Payment.status.in_([PaymentStatus.unpaid, PaymentStatus.submitted]),
+                    Payment.currency == notice.currency,
                     Payment.amount == notice.amount)
             .all())
+    if numbers:
+        rows = [(o, p) for o, p in rows if o.order_number in numbers]
     out = []
     for order, pay in rows:
         if svc.latest_payment(order) is not pay:
@@ -129,6 +135,7 @@ def handle(db: Session, msg: dict) -> str:
         return "not_a_payment"
     if already_used(db, notice.trx):
         return "duplicate"
+    log.info("PayWay notice in %s: %s %s, Trx %s", (msg.get("chat") or {}).get("id"), notice.currency, notice.amount, notice.trx)
     received_at = datetime.fromtimestamp(msg.get("date") or utcnow().timestamp(), tz=timezone.utc)
     who = f"{tg._e(notice.payer)}" + (f" ({tg._e(notice.account)})" if notice.account else "")
     found = candidates(db, notice, received_at)

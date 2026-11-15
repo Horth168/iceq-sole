@@ -31,6 +31,7 @@ DEFAULTS: dict[str, dict] = {
         "khqr_merchant_name": "IceQ Sole",
         "khqr_merchant_city": "Phnom Penh",
         "khqr_static_image_url": "",   # optional: upload your printed ABA KHQR as fallback
+        "khqr_currency": "USD",        # currency of the per-order QR: USD or KHR (riel, at the store rate)
         "khqr_template": "",           # your bank KHQR code (read from the uploaded QR); per-order QRs are built from it
         "bank_name": "ABA Bank",
         "bank_account_name": "",

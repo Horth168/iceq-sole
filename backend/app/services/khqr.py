@@ -138,13 +138,21 @@ def build_from_template(template: str, *, amount: Decimal, currency: str = "USD"
         raise ValueError("KHQR supports USD or KHR")
     amount_str = f"{amount:.2f}" if currency == "USD" else str(int(amount))
     now_ms = int(time.time() * 1000)
-    fields = {tag: val for tag, val in parse_tlv(template.strip()) if tag not in _PER_ORDER}
+    top = dict(parse_tlv(template.strip()))
+    fields = {tag: val for tag, val in top.items() if tag not in _PER_ORDER}
+    # Additional data (62): keep whatever the bank put there - an ABA merchant QR carries its PayWay
+    # routing in sub-tag 68 ("PAYWAY@ABA" + merchant references), which is what makes ABA notify PayWay.
+    # Only the bill number (01) and store label (03) are ours.
+    extra = {k: v for k, v in parse_tlv(top["62"])} if top.get("62") else {}
+    extra["01"] = _ascii(bill_number, 25)
+    if store_label:
+        extra["03"] = _ascii(store_label, 25)
     fields.update({
         "00": "01",
         "01": "12",  # dynamic: one amount, one order
         "53": CURRENCY_CODES[currency],
         "54": amount_str,
-        "62": _tlv("01", _ascii(bill_number, 25)) + (_tlv("03", _ascii(store_label, 25)) if store_label else ""),
+        "62": "".join(_tlv(k, extra[k]) for k in sorted(extra) if extra[k]),
         "99": _tlv("00", str(now_ms)) + _tlv("01", str(now_ms + expiry_minutes * 60_000)),
     })
     payload = "".join(_tlv(tag, fields[tag]) for tag in sorted(fields)) + "6304"
