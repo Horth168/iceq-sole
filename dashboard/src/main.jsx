@@ -1,4 +1,5 @@
 import React from 'react'
+import Pos from './pages/Pos'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Layout, { AuthProvider } from './components/Layout'
@@ -31,6 +32,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/login" element={<Login />} />
             <Route element={<Layout />}>
               <Route index element={<Overview />} />
+              <Route path="pos" element={<Pos />} />
               <Route path="orders" element={<Orders />} />
               <Route path="orders/:id" element={<OrderDetail />} />
               <Route path="orders/:id/invoice" element={<Invoice />} />

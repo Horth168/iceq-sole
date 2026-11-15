@@ -33,7 +33,7 @@ export const PAYMENT_STATUS = {
   refunded: { label: 'Refunded', tone: 'bg-stone-200 text-stone-600' },
 }
 
-export const PAYMENT_METHOD = { khqr: 'ABA KHQR', bank_transfer: 'Bank transfer', cod: 'Cash on delivery' }
+export const PAYMENT_METHOD = { cash: 'Cash (in store)', khqr: 'ABA KHQR', bank_transfer: 'Bank transfer', cod: 'Cash on delivery' }
 
 export const cls = (...a) => a.filter(Boolean).join(' ')
 

@@ -61,6 +61,7 @@ class PaymentMethod(str, enum.Enum):
     khqr = "khqr"
     bank_transfer = "bank_transfer"
     cod = "cod"
+    cash = "cash"                  # in-store (POS) only - never offered at online checkout
 
 
 class PaymentStatus(str, enum.Enum):
@@ -475,6 +476,7 @@ class Order(TimestampMixin, Base):
     tracking_number: Mapped[str] = mapped_column(String(80), default="")
     tracking_url: Mapped[str] = mapped_column(String(300), default="")
     admin_note: Mapped[str] = mapped_column(Text, default="")
+    channel: Mapped[str] = mapped_column(String(10), default="online", server_default="online", index=True)  # online | pos
 
     user: Mapped[User | None] = relationship(back_populates="orders")
     items: Mapped[list[OrderItem]] = relationship(back_populates="order", cascade="all, delete-orphan",

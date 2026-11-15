@@ -173,7 +173,7 @@ def payment_out(p: Payment, admin: bool = False) -> dict:
 
 def order_out(o: Order, admin: bool = False) -> dict:
     d = {
-        "id": o.id, "order_number": o.order_number, "status": o.status.value,
+        "id": o.id, "order_number": o.order_number, "status": o.status.value, "channel": o.channel or "online",
         "invoice_number": "INV-" + (o.order_number[2:] if (o.order_number or "").startswith("IQ") else (o.order_number or "")),
         "payment_method": o.payment_method.value, "payment_status": o.payment_status.value,
         "customer_name": o.customer_name, "customer_phone": o.customer_phone, "customer_email": o.customer_email,

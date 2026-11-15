@@ -94,3 +94,13 @@
   --bone: 245 244 240; --bone-100: 250 249 247; --bone-200: 237 235 230; --bone-300: 226 223 216; --bone-400: 207 203 194;
   --surface: 255 255 255; --muted: 128 125 117; color-scheme: light;
 }
+
+/* Printing a sheet (invoice / POS receipt): only the .print-only copy is printed, on white paper */
+.print-only { display: none; }
+@media print {
+  html, body { background: #fff !important; margin: 0 !important; }
+  #root { display: none !important; }
+  .print-only { display: block; }
+  .print-only * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+.invoice-paper { width: 210mm; min-height: 297mm; box-sizing: border-box; }

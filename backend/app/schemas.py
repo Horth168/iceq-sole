@@ -379,3 +379,27 @@ class TelegramAppLoginIn(Strict):
     init_data: str = Field(min_length=20, max_length=8192)
     remember: bool = True
     locale: Literal["en", "km"] | None = None
+
+
+# ---- in-store POS
+class PosLineIn(Strict):
+    variant_id: int
+    quantity: int = Field(ge=1, le=50)
+
+
+class PosSaleIn(Strict):
+    items: list[PosLineIn] = Field(min_length=1, max_length=60)
+    payment_method: Literal["cash", "khqr", "bank_transfer"]
+    cash_usd: Decimal | None = Field(None, ge=0, le=100000)
+    cash_khr: int | None = Field(None, ge=0, le=400000000)
+    discount_amount: Decimal | None = Field(None, ge=0, le=100000)
+    discount_percent: Decimal | None = Field(None, ge=0, le=100)
+    customer_name: str | None = Field(None, max_length=120)
+    customer_phone: str | None = Field(None, max_length=20)
+    customer_email: EmailStr | None = None
+    note: str | None = Field(None, max_length=500)
+    idempotency_key: str = Field(min_length=8, max_length=64)
+
+
+class PosCompleteIn(Strict):
+    confirm_received: bool = False

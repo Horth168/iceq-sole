@@ -232,7 +232,7 @@ def receipt_html(r: dict, kind: str) -> tuple[str, str, str]:
     badge = (f'<span style="display:inline-block;background:{status[1]};color:{status[2]};font-size:11px;font-weight:700;'
              f'letter-spacing:1px;padding:4px 10px;border-radius:999px">{status[0]}</span>'
              f'<div style="font-size:12px;color:#55534E;margin-top:5px">{PAY_NAMES.get(r["method"], r["method"])}</div>')
-    html = f"""<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset="utf-8"></head>
+    html = f"""<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&display=swap" rel="stylesheet"><style>.km{{font-family:Battambang,'Khmer OS Battambang','Kantumruy Pro',Arial,sans-serif}}</style></head>
 <body style="margin:0;background:#F5F4F0;padding:20px 10px;{font};color:#0B0B0D">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:auto;background:#fff;border-radius:16px;overflow:hidden">
 <tr><td style="background:#0B0B0D;padding:18px 20px">
@@ -243,9 +243,9 @@ def receipt_html(r: dict, kind: str) -> tuple[str, str, str]:
       <div style="font-family:monospace,monospace;font-size:12px;color:#BDBAB2">{r['inv']}</div></td></tr></table>
 </td></tr>
 <tr><td style="padding:28px 28px 8px">
-  <div style="font-size:22px;font-weight:900">{head}</div><div style="color:#8A877F;font-size:13px;margin-top:2px">{head_km}</div>
+  <div style="font-size:22px;font-weight:900">{head}</div><div class="km" style="color:#8A877F;font-size:14px;margin-top:4px;font-family:Battambang,'Khmer OS Battambang','Kantumruy Pro',Arial,sans-serif">{head_km}</div>
   <p style="font-size:14px;line-height:1.6;margin:14px 0 4px">{_esc(intro)}</p>
-  <p style="font-size:13px;line-height:1.6;color:#55534E;margin:0">{intro_km}</p>
+  <p class="km" style="font-size:14px;line-height:1.9;color:#55534E;margin:0;font-family:Battambang,'Khmer OS Battambang','Kantumruy Pro',Arial,sans-serif">{intro_km}</p>
 </td></tr>
 <tr><td style="padding:18px 28px">
   <table role="presentation" width="100%" style="border:1px solid #EEE;border-radius:12px;padding:10px 14px">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2, ExternalLink, Printer, ShoppingCart, Truck, XCircle } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
@@ -216,92 +217,97 @@ export function Invoice() {
   const trackUrl = `${STORE_URL.replace(/\/$/, '')}/track?order=${encodeURIComponent(o.order_number)}`
   const size = (s) => (/^\d/.test(String(s)) ? t('common.eu', { size: s }) : s)
   const Label = ({ children }) => <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stone-450">{children}</p>
+  const sheet = (paper) => (
+        <article className={cls('force-light flex flex-col overflow-hidden bg-white text-[13px] text-ink', paper ? 'invoice-paper' : 'mx-auto max-w-3xl rounded-2xl shadow-soft')}>
+          {/* brand bar */}
+          <header className="flex items-center justify-between gap-6 bg-[#0B0B0D] px-8 py-6 text-white sm:px-10 print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact]">
+            <div className="flex items-center gap-3">
+              <svg viewBox="0 0 32 32" className="h-10 w-10" aria-hidden><path d="M16 2.6 27.6 9.3v13.4L16 29.4 4.4 22.7V9.3L16 2.6Z" stroke="#fff" strokeWidth="2.6" strokeLinejoin="round" fill="none" /><path d="M9.2 20.6h13.6" stroke="#8FD6F5" strokeWidth="2.6" strokeLinecap="round" /><path d="M20.4 23.4 28.6 30" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" /></svg>
+              <div><p className="font-wide text-xl font-black leading-none tracking-tight">ICEQ <span className="text-[10px] font-semibold tracking-[0.35em]">SOLE</span></p><p className="mt-1 text-[11px] text-white/60">{store.address}</p></div>
+            </div>
+            <div className="text-right">
+              <p className="font-wide text-2xl font-black uppercase leading-none">{t('invoice.receipt')}</p>
+              <p className="mt-1.5 font-mono text-[12px] text-white/80">{o.invoice_number}</p>
+            </div>
+          </header>
+
+          <div className="px-8 py-7 sm:px-10">
+            {/* key facts */}
+            <section className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-xl border border-ink/10 p-5 sm:grid-cols-4">
+              <div><Label>{t('invoice.invoiceNo')}</Label><p className="mt-1 font-mono font-semibold">{o.invoice_number}</p></div>
+              <div><Label>{t('invoice.tracking')}</Label><p className="mt-1 font-mono font-semibold">{o.order_number}</p></div>
+              <div><Label>{t('invoice.date')}</Label><p className="mt-1 font-semibold">{dateTime(o.created_at)}</p></div>
+              <div><Label>{t('invoice.status')}</Label>
+                <p className={cls('mt-1 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact]', paid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')}>
+                  {paid ? t('invoice.paid') : t(`payStatus.${o.payment_status}`)}
+                </p>
+              </div>
+            </section>
+
+            <section className="mt-6 grid gap-6 sm:grid-cols-3">
+              <div><Label>{t('invoice.billTo')}</Label><p className="mt-1.5 font-semibold">{o.customer_name}</p><p>{o.customer_phone}</p>{o.customer_email && <p className="break-all">{o.customer_email}</p>}</div>
+              <div><Label>{t('invoice.shipTo')}</Label><p className="mt-1.5">{o.address_line}{o.district && `, ${o.district}`}</p><p>{o.province}</p>{o.delivery_note && <p className="mt-1 text-stone-450">“{o.delivery_note}”</p>}</div>
+              <div><Label>{t('invoice.payment')}</Label><p className="mt-1.5 font-semibold">{t(`payMethod.${o.payment_method}`)}</p>
+                {paid && pay?.verified_at && <p>{t('invoice.paidOn', { date: dateTime(pay.verified_at) })}</p>}
+                {pay?.reference && <p className="font-mono text-[11px] text-stone-450">{pay.reference}</p>}
+              </div>
+            </section>
+
+            {/* items */}
+            <table className="mt-7 w-full">
+              <thead><tr className="border-b-2 border-ink text-left text-[10px] uppercase tracking-[0.14em] text-stone-450">
+                <th className="pb-2">{t('invoice.item')}</th><th className="pb-2 text-right">{t('invoice.qty')}</th><th className="pb-2 text-right">{t('invoice.price')}</th><th className="pb-2 text-right">{t('invoice.total')}</th>
+              </tr></thead>
+              <tbody>{o.items.map((it) => (
+                <tr key={it.id} className="border-b border-ink/10 align-top">
+                  <td className="py-3 pr-3">
+                    <div className="flex gap-3">
+                      {it.image_url && <img src={assetUrl(it.image_url)} alt="" className="h-12 w-12 shrink-0 rounded-lg bg-bone object-cover" />}
+                      <div><p className="font-semibold">{it.product_name}</p><p className="text-stone-450">{it.color} · {size(it.size)}</p><p className="font-mono text-[10px] text-stone-400">{it.sku}</p></div>
+                    </div>
+                  </td>
+                  <td className="py-3 text-right tabular-nums">{it.quantity}</td>
+                  <td className="py-3 text-right tabular-nums">{usd2(it.unit_price)}</td>
+                  <td className="py-3 text-right font-semibold tabular-nums">{usd2(it.line_total)}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+
+            {/* totals + tracking QR */}
+            <section className="mt-6 flex flex-col-reverse items-start justify-between gap-6 sm:flex-row">
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl border border-ink/10 p-2"><QRCodeSVG value={trackUrl} size={84} level="M" /></div>
+                <div><p className="font-semibold">{t('invoice.scanTrack')}</p><p className="max-w-[16rem] text-[11px] text-stone-450">{t('invoice.scanTrackText', { order: o.order_number })}</p></div>
+              </div>
+              <dl className="w-full space-y-1.5 sm:w-64">
+                <div className="flex justify-between"><dt className="text-stone-450">{t('order.subtotal')}</dt><dd className="tabular-nums">{usd2(o.subtotal)}</dd></div>
+                {o.discount_amount > 0 && <div className="flex justify-between"><dt className="text-stone-450">{t('order.discount', { code: o.discount_code })}</dt><dd className="tabular-nums">−{usd2(o.discount_amount)}</dd></div>}
+                <div className="flex justify-between"><dt className="text-stone-450">{t('order.delivery')}</dt><dd className="tabular-nums">{Number(o.delivery_fee) ? usd2(o.delivery_fee) : t('invoice.free')}</dd></div>
+                {o.tax_amount > 0 && <div className="flex justify-between"><dt className="text-stone-450">{t('invoice.tax')}</dt><dd className="tabular-nums">{usd2(o.tax_amount)}</dd></div>}
+                <div className="flex items-baseline justify-between border-t-2 border-ink pt-2.5 text-lg font-black"><dt>{t('order.total')}</dt><dd className="tabular-nums">{usd2(o.total)}</dd></div>
+                <div className="flex justify-between text-[11px] text-stone-450"><dt>{t('invoice.khr', { rate: o.khr_rate })}</dt><dd className="tabular-nums">{khr(o.total_khr)}</dd></div>
+              </dl>
+            </section>
+          </div>
+
+          <footer className="mt-auto border-t border-ink/10 bg-[#F5F4F0] px-8 py-5 text-center text-[11px] text-stone-450 sm:px-10 print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact]">
+            <p className="font-semibold text-ink">{t('invoice.thanksShort', { store: store.name || 'IceQ Sole' })}</p>
+            <p className="mt-1">{t('invoice.policy')}</p>
+            <p className="mt-1">{[store.phone, store.email].filter(Boolean).join(' · ')}</p>
+          </footer>
+        </article>
+  )
   return (
     <div>
-      <style>{'@page { size: A4; margin: 12mm; } @media print { html, body { background: #fff !important; } }'}</style>
+      {/* print: only the sheet below (portal), full A4, no browser header/footer (margin 0) */}
+      <style>{'@page { size: A4; margin: 0; }'}</style>
       <div className="mb-4 flex flex-wrap gap-2 print:hidden">
         <Link to={`/orders/${id}`} className="btn-outline !min-h-[42px]"><ArrowLeft size={16} /> {t('common.back')}</Link>
         <button onClick={() => window.print()} className="btn-primary !min-h-[42px]"><Printer size={16} /> {t('invoice.print')}</button>
         <p className="self-center text-xs text-stone-450">{t('invoice.pdfHint')}</p>
       </div>
-      <article className="force-light mx-auto max-w-3xl overflow-hidden rounded-2xl bg-white text-[13px] text-ink shadow-soft print:max-w-none print:rounded-none print:shadow-none">
-        {/* brand bar */}
-        <header className="flex items-center justify-between gap-6 bg-[#0B0B0D] px-8 py-6 text-white sm:px-10 print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact]">
-          <div className="flex items-center gap-3">
-            <svg viewBox="0 0 32 32" className="h-10 w-10" aria-hidden><path d="M16 2.6 27.6 9.3v13.4L16 29.4 4.4 22.7V9.3L16 2.6Z" stroke="#fff" strokeWidth="2.6" strokeLinejoin="round" fill="none" /><path d="M9.2 20.6h13.6" stroke="#8FD6F5" strokeWidth="2.6" strokeLinecap="round" /><path d="M20.4 23.4 28.6 30" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" /></svg>
-            <div><p className="font-wide text-xl font-black leading-none tracking-tight">ICEQ <span className="text-[10px] font-semibold tracking-[0.35em]">SOLE</span></p><p className="mt-1 text-[11px] text-white/60">{store.address}</p></div>
-          </div>
-          <div className="text-right">
-            <p className="font-wide text-2xl font-black uppercase leading-none">{t('invoice.receipt')}</p>
-            <p className="mt-1.5 font-mono text-[12px] text-white/80">{o.invoice_number}</p>
-          </div>
-        </header>
-
-        <div className="px-8 py-7 sm:px-10">
-          {/* key facts */}
-          <section className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-xl border border-ink/10 p-5 sm:grid-cols-4">
-            <div><Label>{t('invoice.invoiceNo')}</Label><p className="mt-1 font-mono font-semibold">{o.invoice_number}</p></div>
-            <div><Label>{t('invoice.tracking')}</Label><p className="mt-1 font-mono font-semibold">{o.order_number}</p></div>
-            <div><Label>{t('invoice.date')}</Label><p className="mt-1 font-semibold">{dateTime(o.created_at)}</p></div>
-            <div><Label>{t('invoice.status')}</Label>
-              <p className={cls('mt-1 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact]', paid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')}>
-                {paid ? t('invoice.paid') : t(`payStatus.${o.payment_status}`)}
-              </p>
-            </div>
-          </section>
-
-          <section className="mt-6 grid gap-6 sm:grid-cols-3">
-            <div><Label>{t('invoice.billTo')}</Label><p className="mt-1.5 font-semibold">{o.customer_name}</p><p>{o.customer_phone}</p>{o.customer_email && <p className="break-all">{o.customer_email}</p>}</div>
-            <div><Label>{t('invoice.shipTo')}</Label><p className="mt-1.5">{o.address_line}{o.district && `, ${o.district}`}</p><p>{o.province}</p>{o.delivery_note && <p className="mt-1 text-stone-450">“{o.delivery_note}”</p>}</div>
-            <div><Label>{t('invoice.payment')}</Label><p className="mt-1.5 font-semibold">{t(`payMethod.${o.payment_method}`)}</p>
-              {paid && pay?.verified_at && <p>{t('invoice.paidOn', { date: dateTime(pay.verified_at) })}</p>}
-              {pay?.reference && <p className="font-mono text-[11px] text-stone-450">{pay.reference}</p>}
-            </div>
-          </section>
-
-          {/* items */}
-          <table className="mt-7 w-full">
-            <thead><tr className="border-b-2 border-ink text-left text-[10px] uppercase tracking-[0.14em] text-stone-450">
-              <th className="pb-2">{t('invoice.item')}</th><th className="pb-2 text-right">{t('invoice.qty')}</th><th className="pb-2 text-right">{t('invoice.price')}</th><th className="pb-2 text-right">{t('invoice.total')}</th>
-            </tr></thead>
-            <tbody>{o.items.map((it) => (
-              <tr key={it.id} className="border-b border-ink/10 align-top">
-                <td className="py-3 pr-3">
-                  <div className="flex gap-3">
-                    {it.image_url && <img src={assetUrl(it.image_url)} alt="" className="h-12 w-12 shrink-0 rounded-lg bg-bone object-cover" />}
-                    <div><p className="font-semibold">{it.product_name}</p><p className="text-stone-450">{it.color} · {size(it.size)}</p><p className="font-mono text-[10px] text-stone-400">{it.sku}</p></div>
-                  </div>
-                </td>
-                <td className="py-3 text-right tabular-nums">{it.quantity}</td>
-                <td className="py-3 text-right tabular-nums">{usd2(it.unit_price)}</td>
-                <td className="py-3 text-right font-semibold tabular-nums">{usd2(it.line_total)}</td>
-              </tr>
-            ))}</tbody>
-          </table>
-
-          {/* totals + tracking QR */}
-          <section className="mt-6 flex flex-col-reverse items-start justify-between gap-6 sm:flex-row">
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl border border-ink/10 p-2"><QRCodeSVG value={trackUrl} size={84} level="M" /></div>
-              <div><p className="font-semibold">{t('invoice.scanTrack')}</p><p className="max-w-[16rem] text-[11px] text-stone-450">{t('invoice.scanTrackText', { order: o.order_number })}</p></div>
-            </div>
-            <dl className="w-full space-y-1.5 sm:w-64">
-              <div className="flex justify-between"><dt className="text-stone-450">{t('order.subtotal')}</dt><dd className="tabular-nums">{usd2(o.subtotal)}</dd></div>
-              {o.discount_amount > 0 && <div className="flex justify-between"><dt className="text-stone-450">{t('order.discount', { code: o.discount_code })}</dt><dd className="tabular-nums">−{usd2(o.discount_amount)}</dd></div>}
-              <div className="flex justify-between"><dt className="text-stone-450">{t('order.delivery')}</dt><dd className="tabular-nums">{Number(o.delivery_fee) ? usd2(o.delivery_fee) : t('invoice.free')}</dd></div>
-              {o.tax_amount > 0 && <div className="flex justify-between"><dt className="text-stone-450">{t('invoice.tax')}</dt><dd className="tabular-nums">{usd2(o.tax_amount)}</dd></div>}
-              <div className="flex items-baseline justify-between border-t-2 border-ink pt-2.5 text-lg font-black"><dt>{t('order.total')}</dt><dd className="tabular-nums">{usd2(o.total)}</dd></div>
-              <div className="flex justify-between text-[11px] text-stone-450"><dt>{t('invoice.khr', { rate: o.khr_rate })}</dt><dd className="tabular-nums">{khr(o.total_khr)}</dd></div>
-            </dl>
-          </section>
-        </div>
-
-        <footer className="border-t border-ink/10 bg-[#F5F4F0] px-8 py-5 text-center text-[11px] text-stone-450 sm:px-10 print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact]">
-          <p className="font-semibold text-ink">{t('invoice.thanksShort', { store: store.name || 'IceQ Sole' })}</p>
-          <p className="mt-1">{t('invoice.policy')}</p>
-          <p className="mt-1">{[store.phone, store.email].filter(Boolean).join(' · ')}</p>
-        </footer>
-      </article>
+      <div className="print:hidden">{sheet(false)}</div>
+      {createPortal(<div className="print-only">{sheet(true)}</div>, document.body)}
     </div>
   )
 }

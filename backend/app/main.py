@@ -17,7 +17,7 @@ from sqlalchemy import text
 from app.config import settings
 from app.database import engine
 from app.limiter import limiter
-from app.routers import (account, admin_backup, admin_catalog, admin_dashboard, admin_marketing, admin_orders, admin_settings,
+from app.routers import (account, admin_backup, admin_pos, admin_catalog, admin_dashboard, admin_marketing, admin_orders, admin_settings,
                          auth, cart, catalog, orders, telegram)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -103,7 +103,7 @@ async def unhandled(request: Request, exc: Exception):
 
 # ------------------------------------------------------------- routes
 for r in (auth, account, catalog, cart, orders, admin_dashboard, admin_catalog, admin_orders, admin_marketing,
-          admin_settings, admin_backup, telegram):
+          admin_settings, admin_backup, admin_pos, telegram):
     app.include_router(r.router)
 
 

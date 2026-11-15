@@ -10,7 +10,7 @@ export default {
     photoCredit: 'Photo credit', creditHint: 'Photographer / source, e.g. "Jane Doe / Unsplash"', on: 'On', off: 'Off',
   },
   nav: {
-    overview: 'Overview', orders: 'Orders', products: 'Products', catalog: 'Brands & attributes', inventory: 'Inventory',
+    overview: 'Overview', pos: 'Point of sale', orders: 'Orders', products: 'Products', catalog: 'Brands & attributes', inventory: 'Inventory',
     customers: 'Customers', marketing: 'Marketing', reviews: 'Reviews', settings: 'Settings', dashboard: 'Dashboard',
     viewStore: 'View store', signOut: 'Sign out', openMenu: 'Open menu', closeMenu: 'Close menu', phnomPenh: 'Phnom Penh',
     notifications: 'Notifications', notificationsUnread: 'Notifications ({n} unread)', caughtUp: "You're all caught up.",
@@ -23,7 +23,7 @@ export default {
   },
   status: { pending: 'Pending', confirmed: 'Confirmed', processing: 'Processing', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Cancelled', refunded: 'Refunded' },
   payStatus: { unpaid: 'Awaiting payment', submitted: 'Verifying payment', paid: 'Paid', failed: 'Payment issue', refunded: 'Refunded' },
-  payMethod: { khqr: 'ABA KHQR', bank_transfer: 'Bank transfer', cod: 'Cash on delivery' },
+  payMethod: { khqr: 'ABA KHQR', bank_transfer: 'Bank transfer', cod: 'Cash on delivery', cash: 'Cash (in store)' },
   overview: {
     title: 'Overview', subtitle: 'Live numbers from your store database.', lastDays: 'Last {n} days',
     revenue: 'Revenue (paid)', revenueSub: '{amount} in the last {days} days', totalOrders: 'Total orders',
