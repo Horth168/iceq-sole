@@ -1,4 +1,5 @@
-"""Telegram webhook: /start (shows your chat ID) and the Received / Not received buttons."""
+"""Telegram webhook: /start (shows your chat ID), the Received / Not received buttons, and the
+ABA PayWay listener that confirms KHQR payments automatically (services/payway.py)."""
 from __future__ import annotations
 
 import hmac
@@ -7,9 +8,11 @@ import logging
 from fastapi import APIRouter, Depends, Header, Request
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db
 from app.models import Order, OrderStatus, PaymentStatus
 from app.services import orders as svc
+from app.services import payway
 from app.services import telegram as tg
 from app.services.email import send_payment_update_later
 
@@ -35,8 +38,12 @@ async def webhook(secret: str, request: Request, db: Session = Depends(get_db),
     try:
         if "callback_query" in update:
             _handle_button(db, update["callback_query"])
-        elif "message" in update:
-            _handle_message(update["message"])
+        elif "message" in update or "channel_post" in update:
+            msg = update.get("message") or update.get("channel_post")
+            if (msg.get("chat") or {}).get("type") == "private":
+                _handle_message(msg)
+            else:
+                _handle_group(db, msg)
     except Exception:  # noqa: BLE001 - always answer 200 so Telegram doesn't retry forever
         log.exception("Telegram update failed")
         db.rollback()
@@ -54,6 +61,25 @@ def _handle_message(msg: dict) -> None:
     else:
         _reply(cid, f"👋 Your chat ID is <code>{cid}</code>\n\nTo get IceQ Sole alerts, put this number in "
                     "<b>TELEGRAM_ADMIN_CHAT_IDS</b> (Render → iceq-sole-api → Environment), save, then send /start again.")
+
+
+def _handle_group(db: Session, msg: dict) -> None:
+    """Groups and channels: PayWay payment notices, plus /iceq to check the setup."""
+    chat = msg.get("chat") or {}
+    text = (msg.get("text") or msg.get("caption") or "").strip()
+    if text.split("@")[0].lower() == "/iceq":
+        here = str(chat.get("id")) == settings.PAYWAY_CHAT_ID.strip()
+        _reply(chat["id"], f"IceQ Sole bot is here. This {chat.get('type')} ID is <code>{chat.get('id')}</code>.\n"
+               +("This is the payment chat: PayWay payments here are confirmed automatically." if here else
+                  "To auto-confirm payments from this chat, set <b>PAYWAY_CHAT_ID</b> to this ID in Render."))
+        return
+    result = payway.handle(db, msg)
+    if result == "ignored" and payway.parse(text):
+        # a PayWay-looking message in a chat we don't listen to: log it to help with setup
+        log.warning("PayWay-style message in chat %s (%s) from %s was ignored (PAYWAY_CHAT_ID=%r)",
+                    chat.get("id"), chat.get("type"), (msg.get("from") or {}).get("username"), settings.PAYWAY_CHAT_ID)
+    elif result != "ignored":
+        log.info("PayWay message in %s: %s", chat.get("id"), result)
 
 
 def _handle_button(db: Session, cq: dict) -> None:

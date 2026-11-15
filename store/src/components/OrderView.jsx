@@ -6,7 +6,7 @@ import { AlertTriangle, Check, Copy, ExternalLink, ImagePlus, Loader2, Package, 
 import { api, assetUrl, upload } from '../lib/api'
 import { useToast } from '../context/Toast'
 import { Rich, usePrefs } from '../context/Prefs'
-import { cls, dateTime, khr, PAYMENT_STATUS, STATUS, usd2 } from '../lib/format'
+import { cls, dateTime, khr, PAYMENT_STATUS, STATUS, usd2, sizeLabel } from '../lib/format'
 import { Img, Spinner, StatusPill } from './ui'
 
 const FLOW = ['pending', 'confirmed', 'processing', 'shipped', 'delivered']
@@ -114,7 +114,7 @@ export default function OrderView({ order: initial, payment: initialPay, token, 
                 <div className="min-w-0 flex-1">
                   <p className="eyebrow keep-latin !text-[10px]">{it.brand_name}</p>
                   {it.product_slug ? <Link to={`/product/${it.product_slug}`} className="font-semibold hover:underline">{it.product_name}</Link> : <p className="font-semibold">{it.product_name}</p>}
-                  <p className="text-sm text-stone-450">{it.color} · EU {it.size} · {t('order.qty', { n: it.quantity })}</p>
+                  <p className="text-sm text-stone-450">{it.color} · {sizeLabel(it.size)} · {t('order.qty', { n: it.quantity })}</p>
                 </div>
                 <p className="font-semibold tabular-nums">{usd2(it.line_total)}</p>
               </li>

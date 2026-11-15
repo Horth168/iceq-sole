@@ -4,7 +4,7 @@ import { Banknote, Building2, Check, ChevronLeft, Lock, QrCode } from 'lucide-re
 import { api } from '../lib/api'
 import { useStore } from '../context/Store'
 import { useToast } from '../context/Toast'
-import { cls, khr, usd, uuid, validKhPhone } from '../lib/format'
+import { cls, khr, usd, uuid, validKhPhone, sizeLabel } from '../lib/format'
 import { store } from '../lib/storage'
 import { saveMyOrder } from '../lib/myOrders'
 import { Field, Img, Spinner } from '../components/ui'
@@ -186,7 +186,7 @@ export default function Checkout() {
                 <li key={it.id} className="flex gap-3">
                   <div className="relative"><Img image={it.image} className="h-16 w-16 rounded-xl" sizes="64px" />
                     <span className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-ink px-1 text-[10px] font-bold text-white">{it.quantity}</span></div>
-                  <div className="min-w-0 flex-1 text-sm"><p className="truncate font-semibold">{pick(it.product, 'name')}</p><p className="text-stone-450">{it.color} · EU {it.size}</p></div>
+                  <div className="min-w-0 flex-1 text-sm"><p className="truncate font-semibold">{pick(it.product, 'name')}</p><p className="text-stone-450">{it.color} · {sizeLabel(it.size)}</p></div>
                   <p className="text-sm font-semibold tabular-nums">{usd(it.line_total)}</p>
                 </li>
               ))}

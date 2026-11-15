@@ -6,7 +6,7 @@ import { usePrefs } from '../context/Prefs'
 import { api } from '../lib/api'
 import { peek, remember } from '../lib/cache'
 import { applyIfSafe } from '../lib/updates'
-import { cls, usd } from '../lib/format'
+import { cls, usd, sizeLabel } from '../lib/format'
 import Logo from './Logo'
 import MobileMenu from './MobileMenu'
 import ErrorBoundary from './ErrorBoundary'
@@ -368,7 +368,7 @@ function CartDrawer() {
                 <div className="flex min-w-0 flex-1 flex-col">
                   <p className="eyebrow !text-[10px]">{it.product.brand}</p>
                   <p className="truncate font-semibold">{pick(it.product, 'name')}</p>
-                  <p className="text-xs text-stone-450">{it.color} · EU {it.size}</p>
+                  <p className="text-xs text-stone-450">{it.color} · {sizeLabel(it.size)}</p>
                   {it.available < it.quantity && <p className="text-xs font-semibold text-signal">{t('bag.onlyAvailable', { n: it.available })}</p>}
                   <div className="mt-auto flex items-center justify-between pt-2">
                     <QtyStepper compact value={it.quantity} max={Math.min(10, it.available)} min={1} onChange={(q) => run(it.id, () => updateQty(it.id, q))} />

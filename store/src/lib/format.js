@@ -44,3 +44,6 @@ export function validKhPhone(v) {
   const m = d.match(/^(?:\+?855|0)?(\d{8,9})$/)
   return !!m && !m[1].startsWith('0')
 }
+
+// Shoe sizes read 'EU 42'; accessories use their own label ('One size')
+export const sizeLabel = (s) => (/^\d/.test(String(s ?? '')) ? `EU ${s}` : String(s ?? ''))

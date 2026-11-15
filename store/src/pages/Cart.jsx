@@ -4,7 +4,7 @@ import { ArrowRight, Lock, ShoppingBag, Tag, Trash2, Truck, X } from 'lucide-rea
 import { api } from '../lib/api'
 import { useStore } from '../context/Store'
 import { useToast } from '../context/Toast'
-import { cls, khr, usd } from '../lib/format'
+import { cls, khr, usd, sizeLabel } from '../lib/format'
 import { EmptyState, Img, QtyStepper, Spinner } from '../components/ui'
 import { usePrefs } from '../context/Prefs'
 import PromoCode from '../components/PromoCode'
@@ -97,7 +97,7 @@ function CartLine({ it, busy, run, updateQty, removeItem, changeVariant }) {
           </select>
           <select aria-label={t('bag.size')} value={it.size} onChange={(e) => { const v = sameColor.find((x) => x.size === e.target.value); if (v) run(it.id, () => changeVariant(it.id, v.id, Math.min(it.quantity, v.available))) }}
             className="h-9 rounded-full border border-ink/15 bg-white px-3 text-xs font-semibold">
-            {options ? sameColor.map((v) => <option key={v.id} value={v.size} disabled={v.available <= 0}>EU {v.size}{v.available <= 0 ? ` — ${t('bag.soldOut')}` : ''}</option>) : <option value={it.size}>EU {it.size}</option>}
+            {options ? sameColor.map((v) => <option key={v.id} value={v.size} disabled={v.available <= 0}>{sizeLabel(v.size)}{v.available <= 0 ? ` — ${t('bag.soldOut')}` : ''}</option>) : <option value={it.size}>EU {it.size}</option>}
           </select>
         </div>
         {it.available < it.quantity && <p className="mt-2 text-xs font-semibold text-signal">{it.available ? t('bag.onlyLeftLower', { n: it.available }) : t('bag.soldOutRemove')}</p>}

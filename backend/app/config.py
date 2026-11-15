@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     # Telegram alerts + one-tap payment confirmation (bot from @BotFather; chat IDs = who may confirm)
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_ADMIN_CHAT_IDS: str = ""  # comma separated numeric chat IDs
+    # Auto-confirm KHQR payments from ABA PayWay notifications (services/payway.py):
+    # the group/channel where @PayWayByABA_bot posts payments, e.g. -1004470641278
+    PAYWAY_CHAT_ID: str = ""
+    PAYWAY_BOT_USERNAME: str = "PayWayByABA_bot"
     DASHBOARD_URL: str = ""            # optional, for "open in dashboard" links
 
     SMTP_HOST: str = ""

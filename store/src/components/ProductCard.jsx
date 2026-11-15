@@ -60,7 +60,7 @@ export default function ProductCard({ product: p, priority = false, sizes, index
           </div>
         </div>
         {p.in_stock && p.sizes?.length > 0 && (
-          <p className="mt-1 truncate text-xs text-stone-450">EU {p.sizes.slice(0, 6).join(' · ')}{p.sizes.length > 6 ? ' …' : ''}</p>
+          <p className="mt-1 truncate text-xs text-stone-450">{/^\d/.test(p.sizes[0] || '') ? 'EU ' : ''}{p.sizes.slice(0, 6).join(' · ')}{p.sizes.length > 6 ? ' …' : ''}</p>
         )}
         <button onClick={() => setQuick(true)} className="mt-2 text-xs font-semibold underline underline-offset-4 md:hidden">{t('card.quickAdd')}</button>
       </div>

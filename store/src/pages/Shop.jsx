@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ChevronDown, SlidersHorizontal, X, SearchX } from 'lucide-react'
 import { api } from '../lib/api'
-import { cls } from '../lib/format'
+import { cls, sizeLabel } from '../lib/format'
 import { ProductGrid } from '../components/ProductCard'
 import { Drawer, EmptyState } from '../components/ui'
 import { usePrefs } from '../context/Prefs'
@@ -74,7 +74,7 @@ export default function Shop({ preset = 'shop' }) {
       : params.get('q') ? `“${params.get('q')}”` : t(cfg.title)
   useMeta({ title, description: t('meta.homeDesc') })
   const active = [
-    ...MULTI.flatMap((k) => params.getAll(k).map((v) => ({ k, v, label: k === 'gender' ? t(`shop.genders.${v}`) : k === 'size' ? `EU ${v}` : pick(meta?.[k === 'category' ? 'categories' : `${k}s`]?.find((x) => x.slug === v || x.name === v), 'name') || v }))),
+    ...MULTI.flatMap((k) => params.getAll(k).map((v) => ({ k, v, label: k === 'gender' ? t(`shop.genders.${v}`) : k === 'size' ? sizeLabel(v) : pick(meta?.[k === 'category' ? 'categories' : `${k}s`]?.find((x) => x.slug === v || x.name === v), 'name') || v }))),
     ...(params.get('min_price') || params.get('max_price') ? [{ k: 'price', label: `$${params.get('min_price') || 0} – $${params.get('max_price') || '∞'}` }] : []),
     ...(params.get('in_stock') ? [{ k: 'in_stock', label: t('shop.inStockChip') }] : []),
     ...(params.get('on_sale') ? [{ k: 'on_sale', label: t('shop.onSaleChip') }] : []),

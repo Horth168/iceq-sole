@@ -37,7 +37,7 @@ PHOTOS = json.loads((ASSETS / "photos.json").read_text(encoding="utf-8"))["photo
 rng = random.Random(7)
 
 # Bump when sync_catalog() learns something new; it runs once per version on existing databases.
-SYNC_KEY, SYNC_VERSION = "seed_sync", 5
+SYNC_KEY, SYNC_VERSION = "seed_sync", 6
 
 BRANDS = [
     ("Nike", "Performance and street icons from Beaverton."),
@@ -334,6 +334,8 @@ def sync_catalog(db, force: bool = False) -> None:
             if prod and prod.images and not prod.is_active:
                 prod.is_active = True
 
+    merch = sync_merch(db, admin) if done < 6 or force else 0
+
     sync_banners(db)
     if flag:
         flag.value = {"version": SYNC_VERSION}
@@ -342,7 +344,68 @@ def sync_catalog(db, force: bool = False) -> None:
     db.commit()
     print(f"Catalogue sync v{SYNC_VERSION}: removed {len(svgs)} illustrations, added {created} products and {photos} photos"
           + (f", hid {len(hidden)} products without photos" if hidden else "")
-          + (f", added {logos} brand logos" if logos else ""))
+          + (f", added {logos} brand logos" if logos else "")
+          + (f", added {merch} accessories" if merch else ""))
+
+
+# v6: IceQ Sole's own accessories - cheap items that also make it easy to test a real KHQR payment.
+# Product images are drawn by design/merch.py from the IceQ logo (replace with photos any time).
+MERCH = [
+    # name, colour, price, image, description EN, KM
+    ("Logo Keychain", "Black", "0.50", "merch-keychain-black.png",
+     "Black acrylic keychain with the IceQ mark and a steel split ring. Small enough for any key set or bag zip.",
+     "ខ្សែសោអាគ្រីលិកពណ៌ខ្មៅ មាននិមិត្តសញ្ញា IceQ និងរង្វង់ដែក។ តូចល្មមសម្រាប់ចងកូនសោ ឬរ៉ូតកាបូប។"),
+    ("Lace Charm", "Ice Blue", "1.00", "merch-lace-charm-ice-blue.png",
+     "Ice-blue enamel charm that clips onto your laces. A small IceQ detail for any pair.",
+     "គ្រឿងតុបតែងពណ៌ខៀវស្រាល សម្រាប់ពាក់លើខ្សែស្បែកជើង។ ព័ត៌មានលម្អិតតូចៗរបស់ IceQ សម្រាប់គ្រប់គូ។"),
+]
+
+
+def sync_merch(db, admin) -> int:
+    brand = db.query(Brand).filter(Brand.name == "IceQ Sole").first()
+    if not brand:
+        brand = Brand(name="IceQ Sole", slug="iceq-sole", description="Our own accessories.", sort_order=99)
+        db.add(brand)
+        db.flush()
+    if not brand.logo_url and (ASSETS / "brands" / "iceq-sole.svg").exists():
+        key = "brands/iceq-sole.svg"
+        brand.logo_url = get_storage().put(key, (ASSETS / "brands" / "iceq-sole.svg").read_bytes(), "image/svg+xml")
+        brand.logo_key = key
+    cat = db.query(Category).filter(Category.slug == "accessories").first()
+    if not cat:
+        cat = Category(name="Accessories", slug="accessories", description="Keychains, lace charms and small extras.",
+                       sort_order=99)
+        db.add(cat)
+    cat.name_km = cat.name_km or "គ្រឿងបន្ថែម"
+    size = db.query(Size).filter(Size.label == "One size").first()
+    if not size:
+        size = Size(label="One size", system="OS", sort_order=999)
+        db.add(size)
+    db.flush()
+    added = 0
+    for name, colour, price, image, desc, desc_km in MERCH:
+        full = f"IceQ Sole {name}"
+        slug = slugify(full)
+        if db.query(Product).filter(Product.slug == slug).first():
+            continue
+        color = db.query(Color).filter(Color.name == colour).first()
+        prod = Product(name=full, slug=slug, model=name, description=desc, description_km=desc_km,
+                       gender=Gender("unisex"), price=Decimal(price), brand_id=brand.id, category_id=cat.id)
+        db.add(prod)
+        db.flush()
+        v = ProductVariant(product_id=prod.id, color_id=color.id, size_id=size.id,
+                           sku=f"IQ-{prod.id:04d}-{slugify(colour)[:6].upper()}-OS", stock=0, reserved=0)
+        db.add(v)
+        db.flush()
+        inventory.adjust(db, v, set_to=50, reason=MovementReason.initial, note="Seed stock",
+                         user_id=admin.id if admin else None)
+        st = image_svc.store_image((ASSETS / "photos" / image).read_bytes(), f"products/{prod.id}")
+        db.add(ProductImage(product_id=prod.id, color_id=color.id, url=st.url, storage_key=st.key, provider=st.provider,
+                            renditions=st.renditions, width=st.width, height=st.height, credit="",
+                            alt=f"{full} in {colour}", sort_order=0, is_primary=True))
+        added += 1
+    db.flush()
+    return added
 
 
 def _set_banner_photo(db, b: Banner, spec: dict) -> None:

@@ -6,7 +6,7 @@ import { Check, Heart, Ruler, ShieldCheck, Truck } from 'lucide-react'
 import { useStore } from '../context/Store'
 import { useToast } from '../context/Toast'
 import { Rich, usePrefs } from '../context/Prefs'
-import { cls, usd } from '../lib/format'
+import { cls, usd, sizeLabel } from '../lib/format'
 import { Price, QtyStepper, Spinner, Stars } from './ui'
 import { productColors } from '../lib/product'
 
@@ -33,7 +33,12 @@ export default function PurchasePanel({ product: p, colorId, onColorChange, comp
   const freeOver = settings?.delivery?.free_shipping_threshold
   const name = pick(p, 'name')
 
-  useEffect(() => { setSizeId(null); setQty(1); setError('') }, [activeColor])
+  // a one-size item (keychain, lace charm) has nothing to choose: pick it so "Buy now" works straight away
+  const onlySize = sizes.length === 1 && sizes[0].available > 0 ? sizes[0].size_id : null
+  useEffect(() => {
+    setSizeId(onlySize)
+    setQty(1); setError('')
+  }, [activeColor, onlySize])
   useEffect(() => { if (variant && qty > variant.available) setQty(Math.max(1, variant.available)) }, [variant]) // eslint-disable-line
 
   // sticky mobile bar when the main buttons scroll out of view (product page only)
@@ -107,7 +112,7 @@ export default function PurchasePanel({ product: p, colorId, onColorChange, comp
             <div className="absolute right-0 z-20 mt-2 w-64 animate-fade-up rounded-2xl bg-white p-4 text-xs shadow-lift">
               <p className="mb-2 font-semibold">{t('product.sizeGuideTitle')}</p>
               {[['38', '5.5', '24'], ['39', '6.5', '24.5'], ['40', '7', '25'], ['41', '8', '26'], ['42', '8.5', '26.5'], ['43', '9.5', '27.5'], ['44', '10', '28'], ['45', '11', '29']].map((r) => (
-                <div key={r[0]} className="flex justify-between border-b border-ink/5 py-1 tabular-nums"><span>EU {r[0]}</span><span>US {r[1]}</span><span>{r[2]} cm</span></div>
+                <div key={r[0]} className="flex justify-between border-b border-ink/5 py-1 tabular-nums"><span>{sizeLabel(r[0])}</span><span>US {r[1]}</span><span>{r[2]} cm</span></div>
               ))}
               <p className="mt-2 text-stone-450">{t('product.sizeGuideNote')}</p>
             </div>
@@ -166,7 +171,7 @@ export default function PurchasePanel({ product: p, colorId, onColorChange, comp
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{name}</p>
-              <p className="text-xs text-stone-450">{variant ? `${colorName} · EU ${variant.size}` : t('product.selectSize')}</p>
+              <p className="text-xs text-stone-450">{variant ? `${colorName} · ${sizeLabel(variant.size)}` : t('product.selectSize')}</p>
             </div>
             <button onClick={() => submit(false)} disabled={!!busy} className="btn-primary !min-h-[44px] shrink-0 !px-5 text-sm">
               {busy ? <Spinner className="h-4 w-4" /> : t('product.stickyAdd', { price: usd(price) })}

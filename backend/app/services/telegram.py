@@ -80,7 +80,7 @@ def register_webhook() -> None:
     for attempt, wait in enumerate((0, 5, 15, 30, 60, 120, 300)):
         time.sleep(wait)
         res = call("setWebhook", url=webhook_url(), secret_token=webhook_secret(),
-                   allowed_updates=["message", "callback_query"], drop_pending_updates=False)
+                   allowed_updates=["message", "channel_post", "callback_query"], drop_pending_updates=False)
         if res and res.get("ok"):
             log.info("Telegram webhook registered (attempt %d)", attempt + 1)
             call("setMyCommands", commands=[{"command": "start", "description": "Connect this chat to IceQ Sole alerts"}])
