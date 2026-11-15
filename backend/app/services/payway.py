@@ -142,6 +142,9 @@ def handle(db: Session, msg: dict) -> str:
 
     if len(found) == 1:
         order, pay = found[0]
+        db.refresh(order, with_for_update=True)       # lock the order row (Postgres); re-check after the lock
+        if order.payment_status == PaymentStatus.paid or already_used(db, notice.trx):
+            return "duplicate"
         pay.reference = f"ABA {notice.trx}"
         pay.gateway_response = {"source": "payway_telegram", "payer": notice.payer, "account": notice.account,
                                 "amount": str(notice.amount), "currency": notice.currency, "trx": notice.trx,

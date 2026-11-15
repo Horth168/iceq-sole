@@ -90,6 +90,9 @@ export default function Settings() {
               <Status ok={!!pay.bank_account_number} yes={t('settings.bankOk')} no={t('settings.bankNo')} />
               <Status ok={!!s.system.telegram_configured} yes={t('settings.tgOk')} no={t('settings.tgNo')} />
               <Status ok={!!s.system.email_configured} yes={`${t('settings.email')}: ${t('settings.emailOk')}`} no={`${t('settings.email')}: ${t('settings.emailNo')}`} />
+              <Status ok={s.system.payway_listener?.state === 'connected'}
+                yes={t('settings.autoConfirmOn', { account: s.system.payway_listener?.account || '' })}
+                no={s.system.payway_listener?.configured ? t('settings.autoConfirmProblem', { state: s.system.payway_listener?.error || s.system.payway_listener?.state || '' }) : t('settings.autoConfirmOff')} />
             </div>
           </Card>
           <BankQrCard template={pay.khqr_template} disabled={ro} onSave={async (tpl) => {

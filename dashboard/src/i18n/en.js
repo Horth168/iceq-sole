@@ -162,6 +162,7 @@ export default {
     what2: 'Passwords and sign-in tokens are never included.', what3: 'Product photos stay in your image storage; the backup lists their links.',
   },
   settings: {
+    autoConfirmOn: 'Automatic KHQR confirmation: on (listening as {account})', autoConfirmOff: 'Automatic KHQR confirmation: off - set up the PayWay listener account to turn it on', autoConfirmProblem: 'Automatic KHQR confirmation: not connected ({state})',
     qrCurrency: 'KHQR currency', qrCurrencyHint: 'Currency of the QR customers scan. Your ABA merchant account receives it in that currency. Save to apply to new QRs.', qrUsd: 'US dollar ($)', qrKhr: 'Riel (៛)',
     title: 'Settings', readOnly: 'Read-only — only admins can change settings.', live: 'Changes apply to the storefront immediately.', saved: 'Settings saved',
     tabs: { store: 'Store', delivery: 'Delivery', payments: 'Payments', regional: 'Currency & tax', staff: 'Staff', system: 'System', backup: 'Backup' },

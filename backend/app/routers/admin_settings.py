@@ -19,6 +19,13 @@ from app.services.email import email_configured  # noqa: E402
 router = APIRouter(prefix="/api/admin", tags=["Admin · settings"])
 
 
+def _listener_status() -> dict:
+    from app.services import tg_listener
+    return {"configured": tg_listener.configured(), "state": tg_listener.STATUS.get("state"),
+            "account": tg_listener.STATUS.get("account"), "error": tg_listener.STATUS.get("error"),
+            "chat": settings.PAYWAY_CHAT_ID}
+
+
 @router.get("/settings")
 def read_settings(db: Session = Depends(get_db), _: User = Depends(require_staff)):
     return {**all_settings(db), "system": {
@@ -29,6 +36,7 @@ def read_settings(db: Session = Depends(get_db), _: User = Depends(require_staff
         "timezone": settings.TIMEZONE,
         "email_configured": email_configured(),
         "telegram_configured": bool(settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_ADMIN_CHAT_IDS.strip()),
+        "payway_listener": _listener_status(),
     }}
 
 

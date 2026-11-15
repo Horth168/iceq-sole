@@ -18,6 +18,7 @@ os.environ.update({
     # outside services are off unless a test turns them on (ignores a developer's local .env)
     "TURNSTILE_SITE_KEY": "", "TURNSTILE_SECRET_KEY": "",
     "GOOGLE_CLIENT_ID": "", "TELEGRAM_LOGIN_BOT_TOKEN": "",
+    "TG_LISTENER_API_ID": "", "TG_LISTENER_API_HASH": "", "TG_LISTENER_SESSION": "",
     "BREVO_API_KEY": "",
 })
 

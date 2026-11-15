@@ -62,6 +62,11 @@ class Settings(BaseSettings):
     # the group/channel where @PayWayByABA_bot posts payments, e.g. -1004470641278
     PAYWAY_CHAT_ID: str = ""
     PAYWAY_BOT_USERNAME: str = "PayWayByABA_bot"
+    # PayWay listener (services/tg_listener.py): a Telegram USER account in the payment group, because
+    # bots never see other bots' group messages. Values from my.telegram.org + telegram_login.py. Secret.
+    TG_LISTENER_API_ID: str = ""
+    TG_LISTENER_API_HASH: str = ""
+    TG_LISTENER_SESSION: str = ""
     DASHBOARD_URL: str = ""            # optional, for "open in dashboard" links
 
     SMTP_HOST: str = ""

@@ -111,6 +111,8 @@ for r in (auth, account, catalog, cart, orders, admin_dashboard, admin_catalog, 
 def _telegram_webhook() -> None:
     from app.services import telegram as tg
     tg.register_webhook_async()  # no-op unless TELEGRAM_BOT_TOKEN is set and the API URL is https
+    from app.services import tg_listener
+    tg_listener.start()           # no-op unless the PayWay listener account is configured
 
 
 @app.get("/sitemap.xml", include_in_schema=False)
