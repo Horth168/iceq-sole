@@ -36,6 +36,7 @@ class TimestampMixin:
 # ---------------------------------------------------------------- enums
 class Role(str, enum.Enum):
     customer = "customer"
+    cashier = "cashier"            # shop counter: Point of sale only
     staff = "staff"
     admin = "admin"
 
@@ -116,6 +117,10 @@ class User(TimestampMixin, Base):
     @property
     def is_staff(self) -> bool:
         return self.role in (Role.staff, Role.admin)
+
+    @property
+    def can_use_dashboard(self) -> bool:
+        return self.role in (Role.cashier, Role.staff, Role.admin)
 
 
 class RefreshToken(Base):

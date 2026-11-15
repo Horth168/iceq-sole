@@ -55,6 +55,9 @@ export default function Layout() {
   useEffect(() => setOpen(false), [loc.pathname])
   if (!ready) return <div className="grid h-dvh place-items-center"><Spinner className="h-6 w-6" /></div>
   if (!user) return <Navigate to="/login" replace state={{ from: loc.pathname }} />
+  // cashiers work the shop counter: Point of sale only (the API refuses everything else as well)
+  const cashier = user.role === 'cashier'
+  if (cashier && !loc.pathname.startsWith('/pos')) return <Navigate to="/pos" replace />
 
   const sidebar = (
     <div className="flex h-full flex-col">
@@ -63,7 +66,7 @@ export default function Layout() {
         <span className="leading-none text-snow"><span className="font-wide keep-latin block text-lg font-black">ICEQ</span><span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-snow/50">{t('nav.dashboard')}</span></span>
       </Link>
       <nav className="flex-1 space-y-1 overflow-y-auto px-3" aria-label={t('nav.dashboard')}>
-        {NAV.map((n) => (
+        {NAV.filter((n) => !cashier || n.to === '/pos').map((n) => (
           <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => cls('flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition', isActive ? 'bg-snow text-night' : 'text-snow/70 hover:bg-snow/10 hover:text-snow')}>
             <n.icon size={18} /> {t(`nav.${n.label}`)}
           </NavLink>
@@ -93,7 +96,7 @@ export default function Layout() {
       <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-ink/10 bg-bone/85 px-4 backdrop-blur-xl sm:px-6">
         <button onClick={() => setOpen(true)} className="-ml-1 grid h-10 w-10 place-items-center rounded-full hover:bg-ink/5 lg:hidden" aria-label={t('nav.openMenu')}><Menu size={20} /></button>
         <p className="hidden truncate text-sm text-stone-450 sm:block">{new Intl.DateTimeFormat(intlLocale(), { timeZone: 'Asia/Phnom_Penh', dateStyle: 'full' }).format(new Date())} · {t('nav.phnomPenh')}</p>
-        <div className="ml-auto flex items-center gap-1.5"><LangToggle /><ThemeToggle /><Notifications /></div>
+        <div className="ml-auto flex items-center gap-1.5"><LangToggle /><ThemeToggle />{!cashier && <Notifications />}</div>
       </header>
       <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:py-8"><Outlet /></main>
     </div>

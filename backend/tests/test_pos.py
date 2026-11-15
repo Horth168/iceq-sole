@@ -115,3 +115,25 @@ def test_daily_summary(client, catalog, admin_headers):
     s = client.get("/api/admin/pos/summary", headers=admin_headers).json()
     assert s["sales"] == 1 and s["items"] == 1 and s["by_method"]["cash"] == s["revenue"] > 0
     assert s["cash"]["received_usd"] == 1000 and s["orders"][0]["invoice_number"].startswith("INV-")
+
+
+def test_cashier_can_only_use_the_pos(client, db, catalog, admin_headers):
+    r = client.post("/api/admin/staff", json={"email": "counter@iceqsole.com", "full_name": "Counter One",
+                                                "password": "Passw0rd!x", "role": "cashier"}, headers=admin_headers)
+    assert r.status_code == 201, r.text
+    h = login(client, "counter@iceqsole.com", password="Passw0rd!x", admin=True)   # can sign in to the dashboard
+    # selling works
+    assert client.get("/api/admin/pos/catalog", headers=h).status_code == 200
+    cfg = client.get("/api/admin/pos/config", headers=h).json()
+    assert cfg["role"] == "cashier" and cfg["can_discount"] is False and cfg["khr_rate"] > 0
+    sale, _ = _sale(client, h, catalog, cash_usd=1000)
+    assert sale.status_code == 201 and sale.json()["order"]["status"] == "delivered"
+    assert client.get("/api/admin/pos/summary", headers=h).json()["sales"] == 1
+    # ...but no discounts
+    no, _ = _sale(client, h, catalog, cash_usd=1000, discount_percent=50)
+    assert no.status_code == 403
+    # and nothing else in the dashboard
+    for path in ["/api/admin/orders", "/api/admin/products", "/api/admin/settings", "/api/admin/customers",
+                 "/api/admin/notifications", "/api/admin/backup/json", "/api/admin/staff", "/api/admin/dashboard"]:
+        assert client.get(path, headers=h).status_code in (403, 404), path
+    assert client.put("/api/admin/settings/payments", json={"cod_enabled": False}, headers=h).status_code == 403

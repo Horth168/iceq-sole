@@ -14,7 +14,7 @@ export default {
     customers: 'Customers', marketing: 'Marketing', reviews: 'Reviews', settings: 'Settings', dashboard: 'Dashboard',
     viewStore: 'View store', signOut: 'Sign out', openMenu: 'Open menu', closeMenu: 'Close menu', phnomPenh: 'Phnom Penh',
     notifications: 'Notifications', notificationsUnread: 'Notifications ({n} unread)', caughtUp: "You're all caught up.",
-    roles: { admin: 'Admin', staff: 'Staff', customer: 'Customer' },
+    roles: { cashier: 'Cashier', admin: 'Admin', staff: 'Staff', customer: 'Customer' },
   },
   login: {
     title: 'Dashboard sign in', subtitle: 'Staff and administrators only.', email: 'Email', password: 'Password',
@@ -190,7 +190,7 @@ export default {
     emailOk: 'SMTP configured', emailNo: 'Not configured — set SMTP_* variables in the backend environment',
     secrets: 'Secrets (database, storage keys, Bakong token, SMTP password) live only in the backend environment variables and are never sent to this dashboard.',
     staffOnly: 'Only admins can manage staff accounts.', staff: 'Staff accounts', addStaff: 'Add staff',
-    rolesHint: '<b>Staff</b> manage orders, products and inventory. <b>Admins</b> can also change settings and staff.', since: '{email} · since {date}',
+    rolesHint: '<b>Cashiers</b> only use the Point of sale (no discounts, nothing else in the dashboard). <b>Staff</b> manage orders, products and inventory. <b>Admins</b> can also change settings and staff.', since: '{email} · since {date}',
     newStaff: 'New staff account', fullName: 'Full name', tempPassword: 'Temporary password',
     tempHint: 'At least 8 characters. Ask them to change it after first sign-in.', role: 'Role', create: 'Create account', created: 'Account created',
   },

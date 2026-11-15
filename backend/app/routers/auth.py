@@ -54,7 +54,7 @@ def _login(request: Request, body: LoginIn, db: Session, staff_only: bool):
         raise HTTPException(401, "Incorrect email or password")
     if not user.is_active:
         raise HTTPException(403, "This account has been disabled")
-    if staff_only and not user.is_staff:
+    if staff_only and not user.can_use_dashboard:
         raise HTTPException(403, "This account does not have dashboard access")
     if not staff_only:
         merge_guest_cart(db, user, request.headers.get("X-Cart-Token"))

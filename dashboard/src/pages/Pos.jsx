@@ -59,6 +59,7 @@ export default function Pos() {
   const [tab, setTab] = useState('sell')
   const [items, setItems] = useState(null)
   const [rate, setRate] = useState(4100)
+  const [canDiscount, setCanDiscount] = useState(false)
   const [query, setQuery] = useState('')
   const [cat, setCat] = useState('')
   const [picker, setPicker] = useState(null)
@@ -78,7 +79,7 @@ export default function Pos() {
   const load = useCallback(() => api('/api/admin/pos/catalog').then(setItems).catch((e) => toast.error(e.message)), [toast])
   useEffect(() => {
     load()
-    api('/api/admin/settings').then((s) => setRate(Number(s.currency?.khr_rate) || 4100)).catch(() => {})
+    api('/api/admin/pos/config').then((c) => { setRate(Number(c.khr_rate) || 4100); setCanDiscount(!!c.can_discount) }).catch(() => {})
   }, [load])
 
   const variants = useMemo(() => {
@@ -258,11 +259,11 @@ export default function Pos() {
                 {/* customer + discount */}
                 <div className="flex gap-2">
                   <button onClick={() => setShowCustomer((s) => !s)} className={cls('chip flex-1 justify-center', (showCustomer || customer.name) && 'chip-active')}><User size={14} /> {customer.name || T.customer}</button>
-                  <div className="flex flex-1 items-center rounded-full border border-ink/15 pl-3">
+                  {canDiscount && <div className="flex flex-1 items-center rounded-full border border-ink/15 pl-3">
                     <span className="text-xs text-stone-450">{T.discount}</span>
                     <input inputMode="decimal" value={disc.value} onChange={(e) => setDisc({ ...disc, value: e.target.value.replace(/[^\d.]/g, '') })} className="w-full min-w-0 bg-transparent px-2 py-2 text-right text-sm tabular-nums outline-none" placeholder="0" aria-label={T.discount} />
                     <button onClick={() => setDisc({ ...disc, type: disc.type === 'amount' ? 'percent' : 'amount' })} className="mr-1 rounded-full bg-ink/5 px-2.5 py-1 text-xs font-bold">{disc.type === 'amount' ? '$' : '%'}</button>
-                  </div>
+                  </div>}
                 </div>
                 {showCustomer && (
                   <div className="grid animate-fade-in gap-2 sm:grid-cols-2">

@@ -197,7 +197,7 @@ function Staff({ disabled }) {
             <div className="min-w-0 flex-1"><p className="font-semibold">{u.full_name}</p><p className="text-xs text-stone-450">{t('settings.since', { email: u.email, date: date(u.created_at) })}</p></div>
             <Pill tone={u.role === 'admin' ? 'bg-ink text-white' : undefined}>{t(`nav.roles.${u.role}`)}</Pill>
             {u.id !== user.id && <>
-              <select className="field !min-h-[36px] !w-auto text-sm" value={u.role} onChange={(e) => patch(u, { role: e.target.value })}><option value="staff">{t('nav.roles.staff')}</option><option value="admin">{t('nav.roles.admin')}</option></select>
+              <select className="field !min-h-[36px] !w-auto text-sm" value={u.role} onChange={(e) => patch(u, { role: e.target.value })}><option value="cashier">{t('nav.roles.cashier')}</option><option value="staff">{t('nav.roles.staff')}</option><option value="admin">{t('nav.roles.admin')}</option></select>
               <Toggle checked={u.is_active} onChange={(v) => patch(u, { is_active: v })} label="" />
             </>}
           </li>
@@ -209,7 +209,7 @@ function Staff({ disabled }) {
             <Field label={t('settings.fullName')}><input required className="field" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></Field>
             <Field label={t('login.email')}><input required type="email" className="field" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
             <Field label={t('settings.tempPassword')} hint={t('settings.tempHint')}><input required minLength={8} type="password" autoComplete="new-password" className="field" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></Field>
-            <Field label={t('settings.role')}><select className="field" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}><option value="staff">{t('nav.roles.staff')}</option><option value="admin">{t('nav.roles.admin')}</option></select></Field>
+            <Field label={t('settings.role')}><select className="field" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}><option value="cashier">{t('nav.roles.cashier')}</option><option value="staff">{t('nav.roles.staff')}</option><option value="admin">{t('nav.roles.admin')}</option></select></Field>
             <button className="btn-primary w-full">{t('settings.create')}</button>
           </form>
         )}

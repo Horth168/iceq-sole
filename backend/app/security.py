@@ -143,6 +143,13 @@ def require_staff(user: User = Depends(get_current_user)) -> User:
     return user
 
 
+def require_pos(user: User = Depends(get_current_user)) -> User:
+    """Point of sale: cashiers, staff and admins. Cashiers can use nothing else in the dashboard."""
+    if user.role not in (Role.cashier, Role.staff, Role.admin):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Staff access required")
+    return user
+
+
 def require_admin(user: User = Depends(get_current_user)) -> User:
     if user.role != Role.admin:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Admin access required")

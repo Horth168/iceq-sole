@@ -6,9 +6,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Order, PaymentMethod, PaymentStatus, User
+from app.models import Order, PaymentMethod, PaymentStatus, Role, User
 from app.schemas import PosCompleteIn, PosSaleIn
-from app.security import require_staff
+from app.security import require_pos
 from app.serializers import order_out
 from app.services import orders as svc
 from app.services import pos
@@ -33,13 +33,25 @@ def _get(db: Session, sale_id: int) -> Order:
     return o
 
 
+@router.get("/config")
+def config(db: Session = Depends(get_db), user: User = Depends(require_pos)):
+    """What the POS screen needs without access to the store settings (cashiers can't read those)."""
+    from app.services.settings_store import get_setting
+    pay = get_setting(db, "payments")
+    return {"khr_rate": int(get_setting(db, "currency").get("khr_rate", 4100)),
+            "merchant_name": pay.get("khqr_merchant_name") or "IceQ Sole",
+            "can_discount": user.role != Role.cashier, "role": user.role.value}
+
+
 @router.get("/catalog")
-def catalog(db: Session = Depends(get_db), _: User = Depends(require_staff)):
+def catalog(db: Session = Depends(get_db), _: User = Depends(require_pos)):
     return pos.catalog(db)
 
 
 @router.post("/sales", status_code=201)
-def create(body: PosSaleIn, db: Session = Depends(get_db), staff: User = Depends(require_staff)):
+def create(body: PosSaleIn, db: Session = Depends(get_db), staff: User = Depends(require_pos)):
+    if staff.role == Role.cashier and (body.discount_amount or body.discount_percent):
+        raise HTTPException(403, "Only a manager can give a discount")
     existing = db.query(Order).filter(Order.idempotency_key == body.idempotency_key).first()
     if existing:  # double tap / network retry: same sale back
         return _sale(db, existing)
@@ -60,12 +72,12 @@ def create(body: PosSaleIn, db: Session = Depends(get_db), staff: User = Depends
 
 
 @router.get("/sales/{sale_id}")
-def read(sale_id: int, db: Session = Depends(get_db), _: User = Depends(require_staff)):
+def read(sale_id: int, db: Session = Depends(get_db), _: User = Depends(require_pos)):
     return _sale(db, _get(db, sale_id))
 
 
 @router.post("/sales/{sale_id}/complete")
-def complete(sale_id: int, body: PosCompleteIn, db: Session = Depends(get_db), staff: User = Depends(require_staff)):
+def complete(sale_id: int, body: PosCompleteIn, db: Session = Depends(get_db), staff: User = Depends(require_pos)):
     order = _get(db, sale_id)
     was_paid = order.payment_status == PaymentStatus.paid
     if not was_paid and not body.confirm_received:
@@ -79,7 +91,7 @@ def complete(sale_id: int, body: PosCompleteIn, db: Session = Depends(get_db), s
 
 
 @router.post("/sales/{sale_id}/cancel")
-def cancel(sale_id: int, db: Session = Depends(get_db), staff: User = Depends(require_staff)):
+def cancel(sale_id: int, db: Session = Depends(get_db), staff: User = Depends(require_pos)):
     order = _get(db, sale_id)
     pos.cancel(db, order, staff)
     db.commit()
@@ -88,5 +100,7 @@ def cancel(sale_id: int, db: Session = Depends(get_db), staff: User = Depends(re
 
 @router.get("/summary")
 def summary(day: str | None = Query(None, pattern=r"^\d{4}-\d{2}-\d{2}$"), db: Session = Depends(get_db),
-            _: User = Depends(require_staff)):
+            user: User = Depends(require_pos)):
+    if user.role == Role.cashier:
+        day = None  # a cashier sees today's sales only
     return pos.summary(db, day)

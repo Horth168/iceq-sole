@@ -83,13 +83,13 @@ async def upload_setting_image(kind: str, file: UploadFile = File(...), db: Sess
 # ================================================================ staff
 @router.get("/staff")
 def list_staff(db: Session = Depends(get_db), _: User = Depends(require_admin)):
-    return [user_out(u) for u in db.query(User).filter(User.role.in_([Role.staff, Role.admin])).order_by(User.id)]
+    return [user_out(u) for u in db.query(User).filter(User.role.in_([Role.cashier, Role.staff, Role.admin])).order_by(User.id)]
 
 
 @router.post("/staff", status_code=201)
 def create_staff(body: StaffIn, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     if body.role == Role.customer:
-        raise HTTPException(400, "Use staff or admin")
+        raise HTTPException(400, "Use cashier, staff or admin")
     u = User(email=body.email.lower(), full_name=body.full_name, password_hash=hash_password(body.password), role=body.role)
     db.add(u)
     try:
@@ -110,6 +110,8 @@ def update_staff(user_id: int, body: UserUpdateIn, db: Session = Depends(get_db)
     if body.is_active is not None:
         u.is_active = body.is_active
     if body.role is not None:
+        if body.role == Role.customer:
+            raise HTTPException(400, "Use cashier, staff or admin")
         u.role = body.role
     u.token_version += 1
     db.commit()
