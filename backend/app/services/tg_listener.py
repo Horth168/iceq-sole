@@ -30,6 +30,7 @@ logging.getLogger("telethon").setLevel(logging.WARNING)
 
 RESCAN_EVERY = 300          # seconds between safety re-reads of the group
 RESCAN_LIMIT = 40           # recent messages checked on each re-read
+MAX_AGE = 6 * 3600          # payments older than this are left alone (no alerts about old history)
 STATUS: dict = {"state": "off", "account": "", "since": None, "last_payment": None, "error": ""}
 _started = False
 
@@ -94,6 +95,8 @@ async def _run() -> None:
     async def handle(message) -> None:
         if not message or not (message.message or "").strip():
             return
+        if message.date and time.time() - message.date.timestamp() > MAX_AGE:
+            return  # old history (re-reads after a restart): never alert about it
         sender = await message.get_sender()
         msg = to_bot_message(chat_id=chat_id, sender_username=getattr(sender, "username", None),
                              sender_is_bot=bool(getattr(sender, "bot", False)), text=message.message, date=message.date)

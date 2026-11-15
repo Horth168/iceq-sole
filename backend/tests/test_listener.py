@@ -68,3 +68,16 @@ def test_listener_ignores_people_typing_payments(client, db, catalog, admin_head
     assert tg_listener.process(_msg(text, username="someone", is_bot=False)) == "ignored"
     db.expire_all()
     assert db.get(Order, order["id"]).payment_status == PaymentStatus.unpaid
+
+
+def test_unmatched_payment_alerts_only_once(client, db, monkeypatch):
+    _on(monkeypatch)
+    sent = []
+    from app.services import telegram as tg
+    monkeypatch.setattr(settings, "TELEGRAM_ADMIN_CHAT_IDS", "111")
+    monkeypatch.setattr(tg, "call", lambda method, **kw: sent.append(kw.get("text", "")) or {"ok": True})
+    monkeypatch.setattr(tg.threading, "Thread", __import__("tests.test_telegram", fromlist=["_NowThread"])._NowThread)
+    text = "$7.77 paid by A (*1) on Nov 15, 12:35 PM via ABA PAY at X. Trx. ID: 555000111, APV: 1."
+    assert tg_listener.process(_msg(text)) == "unmatched"
+    assert tg_listener.process(_msg(text)) == "duplicate"     # the 5-minute re-read: no second alert
+    assert sum("$7.77 received" in t for t in sent) == 1

@@ -122,6 +122,33 @@ def already_used(db: Session, trx: str) -> bool:
     return db.query(Payment.id).filter(Payment.reference == f"ABA {trx}").first() is not None
 
 
+SEEN_KEY, SEEN_MAX = "payway_seen", 500
+
+
+def _seen(db: Session) -> dict:
+    from app.models import StoreSetting
+    row = db.get(StoreSetting, SEEN_KEY)
+    return dict(row.value or {}) if row else {}
+
+
+def already_seen(db: Session, trx: str) -> bool:
+    """Payments that matched nothing / several orders are remembered too, so the owner is told once."""
+    return trx in _seen(db)
+
+
+def remember(db: Session, trx: str, outcome: str) -> None:
+    from app.models import StoreSetting
+    seen = _seen(db)
+    seen[trx] = outcome
+    if len(seen) > SEEN_MAX:
+        seen = dict(list(seen.items())[-SEEN_MAX:])
+    row = db.get(StoreSetting, SEEN_KEY)
+    if row:
+        row.value = seen
+    else:
+        db.add(StoreSetting(key=SEEN_KEY, value=seen))
+
+
 def _money(n: Notice) -> str:
     return f"${n.amount:,.2f}" if n.currency == "USD" else f"៛{n.amount:,.0f}"
 
@@ -133,7 +160,7 @@ def handle(db: Session, msg: dict) -> str:
     notice = parse(msg.get("text") or msg.get("caption") or "")
     if notice is None:
         return "not_a_payment"
-    if already_used(db, notice.trx):
+    if already_used(db, notice.trx) or already_seen(db, notice.trx):
         return "duplicate"
     log.info("PayWay notice in %s: %s %s, Trx %s", (msg.get("chat") or {}).get("id"), notice.currency, notice.amount, notice.trx)
     received_at = datetime.fromtimestamp(msg.get("date") or utcnow().timestamp(), tz=timezone.utc)
@@ -164,10 +191,12 @@ def handle(db: Session, msg: dict) -> str:
                      f"exact amount, so I didn't guess.\n{lines}\nABA Trx {tg._e(notice.trx)}\n"
                      "Press <b>Received</b> on the right order:",
                  buttons=[[{"text": f"Received · {o.order_number}", "callback_data": f"pay:ok:{o.id}"}] for o, _ in found])
+        remember(db, notice.trx, "ambiguous")
         db.commit()
         return "ambiguous"
 
     tg.queue(db, f"ℹ️ <b>{_money(notice)} received from {who}</b>, but no unpaid KHQR order is waiting for that "
                  f"amount right now (ABA Trx {tg._e(notice.trx)}). If it belongs to an order, confirm it in the dashboard.")
+    remember(db, notice.trx, "unmatched")
     db.commit()
     return "unmatched"
