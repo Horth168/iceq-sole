@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import getpass
+import pathlib
 
 PAYMENT_GROUP_ID = -1004470641278   # "IceQ Sole Payment" (shown by /iceq@IceQSoleAdminBot)
 PAYWAY_BOT = "payway"                # part of PayWay's username, to show recent payments
@@ -53,13 +54,20 @@ async def main() -> None:
         print(f"!! This account can't see the payment group ({e.__class__.__name__}). Add it to "
               "'IceQ Sole Payment' in Telegram, then run this again.")
 
+    session = client.session.save()
+    out = pathlib.Path(__file__).with_name(".env.listener")   # git-ignored (.env.*): never committed
+    out.write_text(f"TG_LISTENER_API_ID={api_id}\nTG_LISTENER_API_HASH={api_hash}\nTG_LISTENER_SESSION={session}\n",
+                   encoding="utf-8")
     print("\n" + "=" * 72)
-    print("Put these three values in Render -> iceq-sole-api -> Environment, then Save & deploy:\n")
-    print(f"TG_LISTENER_API_ID   = {api_id}")
-    print(f"TG_LISTENER_API_HASH = {api_hash}")
-    print(f"TG_LISTENER_SESSION  = {client.session.save()}")
+    print(f"Saved the three values to:\n  {out}\n")
+    print("Open that file in Notepad and copy each value from there - the session key is long and")
+    print("terminals often break it when you copy. In Render -> iceq-sole-api -> Environment set:")
+    print("  TG_LISTENER_API_ID    = the text after 'TG_LISTENER_API_ID='")
+    print("  TG_LISTENER_API_HASH  = the text after 'TG_LISTENER_API_HASH='")
+    print(f"  TG_LISTENER_SESSION   = the text after 'TG_LISTENER_SESSION=' ({len(session)} characters)")
     print("=" * 72)
-    print("Keep the session key secret - it signs in to this Telegram account.")
+    print("Keep that file and the session key secret - they sign in to this Telegram account.")
+    print("Delete the file once Render has the values.")
     await client.disconnect()
 
 

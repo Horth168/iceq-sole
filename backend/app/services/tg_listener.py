@@ -39,6 +39,15 @@ def configured() -> bool:
                 and settings.PAYWAY_CHAT_ID.strip())
 
 
+def clean_session(raw: str) -> str:
+    """Forgive common copy-paste damage: line breaks/spaces, surrounding quotes, a pasted
+    'TG_LISTENER_SESSION=' label. The key is base64 text, so none of these belong in it."""
+    s = "".join((raw or "").split())
+    if s.upper().startswith("TG_LISTENER_SESSION") and "=" in s[:30]:
+        s = s.split("=", 1)[1]
+    return s.strip("'\"`")
+
+
 def to_bot_message(*, chat_id: int, sender_username: str | None, sender_is_bot: bool, text: str, date) -> dict:
     """Shape a Telethon message like a Bot API update, so payway.handle applies the same rules."""
     ts = date.replace(tzinfo=date.tzinfo or timezone.utc).timestamp() if date else time.time()
@@ -73,8 +82,7 @@ async def _run() -> None:
     chat_id = int(settings.PAYWAY_CHAT_ID.strip())
     want = settings.PAYWAY_BOT_USERNAME.lstrip("@").lower()
     try:
-        # copying a long key out of a terminal often adds line breaks or spaces: drop all whitespace
-        session = StringSession("".join(settings.TG_LISTENER_SESSION.split()))
+        session = StringSession(clean_session(settings.TG_LISTENER_SESSION))
         api_id = int(str(settings.TG_LISTENER_API_ID).strip())
     except Exception:  # noqa: BLE001 - ValueError, binascii.Error, struct.error: a damaged key
         STATUS.update(state="error", error="TG_LISTENER_SESSION or TG_LISTENER_API_ID is not valid - copy them again from telegram_login.py")
