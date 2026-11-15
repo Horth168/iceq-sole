@@ -10,7 +10,7 @@ export default {
     photoCredit: 'ឥណទានរូបថត', creditHint: 'អ្នកថត / ប្រភព ឧ. "Jane Doe / Unsplash"', on: 'បើក', off: 'បិទ',
   },
   nav: {
-    pos: 'លក់នៅហាង',
+    pos: 'លក់នៅហាង', reports: 'របាយការណ៍លក់',
     overview: 'ទិដ្ឋភាពទូទៅ', orders: 'ការបញ្ជាទិញ', products: 'ផលិតផល', catalog: 'ម៉ាក និងលក្ខណៈ', inventory: 'ស្តុក',
     customers: 'អតិថិជន', marketing: 'ទីផ្សារ', reviews: 'មតិវាយតម្លៃ', settings: 'ការកំណត់', dashboard: 'ផ្ទាំងគ្រប់គ្រង',
     viewStore: 'មើលហាង', signOut: 'ចាកចេញ', openMenu: 'បើកម៉ឺនុយ', closeMenu: 'បិទម៉ឺនុយ', phnomPenh: 'ភ្នំពេញ',

@@ -10,7 +10,7 @@ export default {
     photoCredit: 'Photo credit', creditHint: 'Photographer / source, e.g. "Jane Doe / Unsplash"', on: 'On', off: 'Off',
   },
   nav: {
-    overview: 'Overview', pos: 'Point of sale', orders: 'Orders', products: 'Products', catalog: 'Brands & attributes', inventory: 'Inventory',
+    overview: 'Overview', reports: 'Sales reports', pos: 'Point of sale', orders: 'Orders', products: 'Products', catalog: 'Brands & attributes', inventory: 'Inventory',
     customers: 'Customers', marketing: 'Marketing', reviews: 'Reviews', settings: 'Settings', dashboard: 'Dashboard',
     viewStore: 'View store', signOut: 'Sign out', openMenu: 'Open menu', closeMenu: 'Close menu', phnomPenh: 'Phnom Penh',
     notifications: 'Notifications', notificationsUnread: 'Notifications ({n} unread)', caughtUp: "You're all caught up.",

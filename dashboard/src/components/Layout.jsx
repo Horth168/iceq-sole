@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, Boxes, Store, ExternalLink, LayoutDashboard, LogOut, Megaphone, Menu, Package, Settings, ShoppingCart, Star, Tags, Users, Warehouse, X } from 'lucide-react'
+import { BarChart3, Bell, Boxes, Store, ExternalLink, LayoutDashboard, LogOut, Megaphone, Menu, Package, Settings, ShoppingCart, Star, Tags, Users, Warehouse, X } from 'lucide-react'
 import { api, onLogout, STORE_URL, tokens } from '../lib/api'
 import { cls, dateTime, intlLocale } from '../lib/format'
 import { usePrefs } from '../context/Prefs'
@@ -36,6 +36,7 @@ export function AuthProvider({ children }) {
 
 const NAV = [
   { to: '/', label: 'overview', icon: LayoutDashboard, end: true },
+  { to: '/reports', label: 'reports', icon: BarChart3 },
   { to: '/pos', label: 'pos', icon: Store },
   { to: '/orders', label: 'orders', icon: ShoppingCart },
   { to: '/products', label: 'products', icon: Package },
